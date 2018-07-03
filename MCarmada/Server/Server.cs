@@ -20,7 +20,7 @@ namespace MCarmada.Server
         public Server(ushort port)
         {
             listener = new Listener(this, port);
-            level = new Level(1024, 128, 1024);
+            level = new Level(128, 128, 128);
         }
 
         public void Tick()
