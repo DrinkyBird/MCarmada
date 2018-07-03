@@ -68,8 +68,12 @@
     <Compile Include="Utils\LogUtils.cs" />
     <Compile Include="Utils\TimeUtil.cs" />
     <Compile Include="World\BlockPos.cs" />
+    <Compile Include="World\Generation\ArmadaCraftGenerator.cs" />
     <Compile Include="World\Generation\ClassicGenerator.cs" />
+    <Compile Include="World\Generation\FlatGenerator.cs" />
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
+    <Compile Include="World\Generation\Noise\OpenSimplex.cs" />
+    <Compile Include="World\Generation\Noise\OpenSimplexNoise.cs" />
     <Compile Include="World\Generation\WorldGenerator.cs" />
     <Compile Include="World\Level.cs" />
   </ItemGroup>

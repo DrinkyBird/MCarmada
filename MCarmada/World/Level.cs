@@ -22,6 +22,7 @@ namespace MCarmada.World
 
         public byte[] Blocks;
         public Random Rng { get; private set; }
+        public int Seed { get; private set; }
 
         private WorldGenerator generator;
 
@@ -33,9 +34,9 @@ namespace MCarmada.World
             Depth = d;
             Height = h;
 
-            int seed = (int) DateTime.Now.Ticks;
-            logger.Info("Creating world with seed " + seed + "...");
-            Rng = new Random(seed);
+            Seed = (int) DateTime.Now.Ticks;
+            logger.Info("Creating world with seed " + Seed + "...");
+            Rng = new Random(Seed);
 
             Init();
         }
