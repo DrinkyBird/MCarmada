@@ -11,10 +11,6 @@ namespace MCarmada.World.Generation
 {
     partial class ClassicGenerator : WorldGenerator
     {
-        private CombinedNoise hmNoise1;
-        private CombinedNoise hmNoise2;
-        private OctaveNoise hmNoise3;
-
         private Level level;
         private Logger logger = LogUtils.GetClassLogger();
 
@@ -27,6 +23,7 @@ namespace MCarmada.World.Generation
             GenerateHeightmap();
             GenerateStrata();
             GenerateCaves();
+
             GenerateOres(14, 0.5); // Gold
             GenerateOres(15, 0.7); // Iron
             GenerateOres(16, 0.9); // Coal
@@ -45,9 +42,9 @@ namespace MCarmada.World.Generation
 
             int waterLevel = level.Depth / 2;
 
-            hmNoise1 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
-            hmNoise2 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
-            hmNoise3 = new OctaveNoise(6, level.Rng);
+            CombinedNoise noise1 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
+            CombinedNoise noise2 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
+            OctaveNoise noise3 = new OctaveNoise(6, level.Rng);
 
             int lastPercent = -1;
             int generated = 0;
@@ -65,11 +62,11 @@ namespace MCarmada.World.Generation
                     logger.Info("Raising... " + percent + "%");
                 }
 
-                double heightLow = hmNoise1.Compute(x * 1.3, z * 1.3) / 6 - 4;
-                double heightHigh = hmNoise1.Compute(x * 1.3, z * 1.3) / 5 + 6;
+                double heightLow = noise1.Compute(x * 1.3, z * 1.3) / 6 - 4;
+                double heightHigh = noise1.Compute(x * 1.3, z * 1.3) / 5 + 6;
                 double heightResult;
 
-                if (hmNoise3.Compute(x, z) / 8 > 0)
+                if (noise3.Compute(x, z) / 8 > 0)
                 {
                     heightResult = heightLow;
                 }
