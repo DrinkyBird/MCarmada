@@ -160,5 +160,10 @@ namespace MCarmada.Network
 
             return data;
         }
+
+        public int GetLength()
+        {
+            return (int) buffer.Length;
+        }
     }
 }

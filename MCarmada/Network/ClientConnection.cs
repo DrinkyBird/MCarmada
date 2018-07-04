@@ -61,9 +61,30 @@ namespace MCarmada.Network
             inBuffer.SetLength(0);
             while (socket.Available > 0)
             {
-                byte[] buf = new byte[1024];
-                int recvd = socket.Receive(buf, 0, buf.Length, SocketFlags.None);
-                inBuffer.Write(buf, 0, recvd);
+                try
+                {
+                    byte[] buf = new byte[1024];
+                    int recvd = socket.Receive(buf, 0, buf.Length, SocketFlags.None);
+                    inBuffer.Write(buf, 0, recvd);
+                }
+                catch (SocketException e)
+                {
+                    if (e.SocketErrorCode == SocketError.WouldBlock)
+                    {
+                        // nobody cares
+                    }
+                    else if (e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.ConnectionAborted)
+                    {
+                        Connected = false;
+                        Disconnect("Client disconnected");
+                        return;
+                    }
+                    else
+                    {
+                        Disconnect("An unexpected socket error occured (" + e.SocketErrorCode.ToString() + ")");
+                        return;
+                    }
+                }
             }
             inBuffer.Position = 0;
 
@@ -71,6 +92,7 @@ namespace MCarmada.Network
 
             while (inBuffer.Position < len)
             {
+
                 PacketType.Header type = (PacketType.Header) inBuffer.ReadByte();
 
                 int packetLen = PacketType.GetPacketSize(type);
@@ -80,6 +102,11 @@ namespace MCarmada.Network
 
                 Packet packet = new Packet(data);
                 HandlePacket(packet);
+                // in case we got disconnected in the middle of reading packets
+                if (!Connected)
+                {
+                    return;
+                }
             }
 
             inBuffer.SetLength(0);
@@ -101,6 +128,18 @@ namespace MCarmada.Network
                 if (version != 0x07)
                 {
                     Disconnect("Invalid version");
+                    return;
+                }
+
+                if (server.FindPlayerByName(clientName) != null)
+                {
+                    Disconnect("There is already a player with that name!");
+                    return;
+                }
+
+                if (!server.AuthenticateClient(clientName, key))
+                {
+                    Disconnect("Authentication failure");
                     return;
                 }
 
@@ -158,6 +197,13 @@ namespace MCarmada.Network
 
         public void Send(Packet packet)
         {
+            if (packet.GetLength() - 1 != PacketType.GetPacketSize(packet.Type))
+            {
+                throw new InvalidOperationException("Length of packet " + packet.Type + " is wrong: " + packet.GetLength() + " should be " +
+                                                 PacketType.GetPacketSize(packet.Type));
+                return;
+            }
+
             byte[] bytes = packet.GetBytes();
             int len = bytes.Length;
 
@@ -194,7 +240,7 @@ namespace MCarmada.Network
                 {
                     // nobody cares
                 }
-                else if (e.SocketErrorCode == SocketError.ConnectionReset)
+                else if (e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.ConnectionAborted)
                 {
                     Connected = false;
                     Disconnect("Client disconnected");
@@ -210,7 +256,7 @@ namespace MCarmada.Network
             outBuffer.SetLength(0);
         }
 
-        private void Disconnect(string reason)
+        public void Disconnect(string reason)
         {
             if (Connected)
             {
@@ -221,11 +267,21 @@ namespace MCarmada.Network
             }
 
             DestroyClient();
+
+            logger.Info("Client connection lost.");
+
+            server.BroadcastMessage(clientName + " has disconnected. (" + reason + ")");
         }
 
         private void DestroyClient()
         {
-            server.DestroyPlayer(player);
+            Connected = false;
+
+            if (player != null)
+            {
+                server.DestroyPlayer(player);
+            }
+
             server.listener.Connections.Remove(this);
 
             socket.Dispose();

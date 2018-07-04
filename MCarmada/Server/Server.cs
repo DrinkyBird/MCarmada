@@ -4,23 +4,31 @@ using System.Linq;
 using System.Text;
 using MCarmada.Api;
 using MCarmada.Network;
+using MCarmada.Utils;
 using MCarmada.World;
+using NLog;
 
 namespace MCarmada.Server
 {
-    class Server : ITickable
+    partial class Server : ITickable
     {
         public Listener listener;
 
         public Level level;
-        public List<Player> players = new List<Player>();
+        public Player[] players;
 
         public uint CurrentTick { get; private set; }
 
+        private Logger logger = LogUtils.GetClassLogger();
+        private string Salt;
+
         public Server(ushort port)
         {
+            Salt = GenerateSalt(32);
+
+            players = new Player[32];
             listener = new Listener(this, port);
-            level = new Level(128, 128, 128);
+            level = new Level(this, 256, 256, 256);
         }
 
         public void Tick()
@@ -37,42 +45,82 @@ namespace MCarmada.Server
 
             foreach (var player in players)
             {
+                if (player == null) continue;
+
                 player.Tick();
             }
 
             UpdateConsoleTitle();
+            SendHeartbeat();
 
             CurrentTick++;
         }
 
         public Player CreatePlayer(ClientConnection connection, string name)
         {
-            Player player = new Player(this, connection, name);
+            int id = FindIdForPlayer();
 
-            players.Add(player);
+            if (id == -1)
+            {
+                connection.Disconnect("Server is full");
+                return null;
+            }
+
+            Player player = new Player(this, connection, name, id);
+
+            players[id] = player;
 
             level.Save("worlds");
 
             return player;
         }
 
+        private int FindIdForPlayer()
+        {
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (players[i] == null)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public Player FindPlayerByName(string name)
+        {
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (players[i] == null)
+                {
+                    continue;
+                }
+
+                if (players[i].Name == name)
+                {
+                    return players[i];
+                }
+            }
+
+            return null;
+        }
+
         public void DestroyPlayer(Player player)
         {
             player.Despawn();
 
-            players.Remove(player);
+            players[player.ID] = null;
         }
 
         public void BroadcastMessage(sbyte id, string message)
         {
+            logger.Info(message);
             Packet msg = new Packet(PacketType.Header.Message);
             msg.Write(id);
             msg.Write(message);
 
-            foreach (var player in players)
-            {
-                player.Send(msg);
-            }
+            BroadcastPacket(msg);
         }
 
         public void BroadcastMessage(string message)
@@ -80,9 +128,49 @@ namespace MCarmada.Server
             BroadcastMessage(-1, message);
         }
 
+        public void BroadcastPacket(Packet packet)
+        {
+            foreach (var player in players)
+            {
+                if (player == null) continue;
+
+                player.Send(packet);
+            }
+        }
+
+        public void BroadcastPacketExcept(Packet packet, Player except)
+        {
+            foreach (var player in players)
+            {
+                if (player == null) continue;
+
+                if (player == except)
+                {
+                    continue;
+                }
+
+                player.Send(packet);
+            }
+        }
+
+        public int GetOnlinePlayers()
+        {
+            int num = 0;
+
+            foreach (var player in players)
+            {
+                if (player != null)
+                {
+                    num++;
+                }
+            }
+
+            return num;
+        }
+
         private void UpdateConsoleTitle()
         {
-            Console.Title = "MCarmada - " + players.Count + " players";
+            Console.Title = "MCarmada - " + GetOnlinePlayers() + " players";
         }
     }
 }

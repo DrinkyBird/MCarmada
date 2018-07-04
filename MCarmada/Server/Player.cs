@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using MCarmada.Api;
 using MCarmada.Network;
+using MCarmada.Utils;
 using MCarmada.World;
 using NLog;
 
@@ -20,21 +21,25 @@ namespace MCarmada.Server
         private LevelCompresser levelCompresser;
         private Thread levelCompresserThead;
         public byte[] queuedLevelData = null;
+        public double levelDataTime = 0;
         private int levelDataOffset = 0;
         private int chunksThisTick = 0;
 
-        private int id = 0;
+        public int ID { get; private set; }
+
+        public float X, Y, Z, Yaw, Pitch;
 
         private uint lastPing = 0;
 
         private Logger logger;
 
-        public Player(Server server, ClientConnection connection, string name)
+        public Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
             this.server = server;
 
-            this.Name = name;
+            Name = name;
+            ID = id;
 
             logger = LogManager.GetLogger("Player[" + Name + "]");
         }
@@ -43,7 +48,7 @@ namespace MCarmada.Server
         {
             if (queuedLevelData != null)
             {
-                for (chunksThisTick = 0; chunksThisTick < 3; chunksThisTick++)
+                for (chunksThisTick = 0; chunksThisTick < 1; chunksThisTick++)
                 {
                     if (queuedLevelData == null)
                     {
@@ -72,6 +77,11 @@ namespace MCarmada.Server
 
         private void HandleLevelData()
         {
+            if (TimeUtil.GetTimeInMs() - levelDataTime < 1000.0)
+            {
+                return;
+            }
+
             int len = Math.Min(1024, queuedLevelData.Length - levelDataOffset);
             byte[] output = new byte[len];
             Array.Copy(queuedLevelData, levelDataOffset, output, 0, len);
@@ -86,11 +96,8 @@ namespace MCarmada.Server
             chunk.Write((byte) bpercent);
             Send(chunk);
 
-            logger.Debug("Sending level to " + Name + ": " + levelDataOffset + "/" + queuedLevelData.Length + " (" + percent + "%)");
-
             if (levelDataOffset == queuedLevelData.Length)
             {
-                logger.Debug("Level sent");
                 Packet finish = new Packet(PacketType.Header.LevelFinish);
                 finish.Write((short) server.level.Width);
                 finish.Write((short) server.level.Depth);
@@ -125,6 +132,24 @@ namespace MCarmada.Server
 
                 server.BroadcastMessage("<" + Name + "> " + message);
             }
+            else if (packet.Type == PacketType.Header.PlayerPosition)
+            {
+                byte id = packet.ReadByte();
+                X = FixedPoint.ToFloatingPoint(packet.ReadShort());
+                Y = FixedPoint.ToFloatingPoint(packet.ReadShort());
+                Z = FixedPoint.ToFloatingPoint(packet.ReadShort());
+                Yaw = packet.ReadByte();
+                Pitch = packet.ReadByte();
+
+                Packet update = new Packet(PacketType.Header.PlayerPosition);
+                update.Write((byte) ID);
+                update.Write(FixedPoint.ToFixedPoint(X));
+                update.Write(FixedPoint.ToFixedPoint(Y));
+                update.Write(FixedPoint.ToFixedPoint(Z));
+                update.Write((byte) Yaw);
+                update.Write((byte) Pitch);
+                server.BroadcastPacketExcept(update, this);
+            }
         }
 
         private void SpawnPlayer()
@@ -132,12 +157,44 @@ namespace MCarmada.Server
             BlockPos pos = server.level.GetPlayerSpawn();
             logger.Info("Spawning player at " + pos);
 
-            Packet spawn = new Packet(PacketType.Header.Teleport);
-            spawn.Write((byte) 255);
-            spawn.WriteFixedPointPos(pos);
-            spawn.Write((short) 0);
-            spawn.Write((short) 0);
-            Send(spawn);
+            server.BroadcastMessage(Name + " has connected.");
+
+            foreach (var player in server.players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                if (player == this)
+                {
+                    Packet s = new Packet(PacketType.Header.SpawnPlayer);
+                    s.Write((sbyte) -1);
+                    s.Write(Name);
+                    s.WriteFixedPointPos(pos);
+                    s.Write((byte)0);
+                    s.Write((byte)0);
+                    Send(s);
+                }
+                else
+                {
+                    Packet s = new Packet(PacketType.Header.SpawnPlayer);
+                    s.Write((sbyte) player.ID);
+                    s.Write(player.Name);
+                    s.WriteFixedPointPos(pos);
+                    s.Write((byte) 0);
+                    s.Write((byte)0);
+                    Send(s);
+
+                    Packet os = new Packet(PacketType.Header.SpawnPlayer);
+                    os.Write((sbyte)ID);
+                    os.Write(Name);
+                    os.WriteFixedPointPos(pos);
+                    os.Write((byte)0);
+                    os.Write((byte)0);
+                    player.Send(os);
+                }
+            }
         }
 
         public void Send(Packet packet)
@@ -147,7 +204,9 @@ namespace MCarmada.Server
 
         public void Despawn()
         {
-
+            Packet despawn = new Packet(PacketType.Header.DespawnPlayer);
+            despawn.Write((byte) ID);
+            server.BroadcastPacket(despawn);
         }
     }
 }

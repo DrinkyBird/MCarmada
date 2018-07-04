@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Extensions.Data;
+using MCarmada.Network;
 using MCarmada.Utils;
 using MCarmada.World.Generation;
 using NLog;
@@ -26,10 +27,12 @@ namespace MCarmada.World
 
         private WorldGenerator generator;
 
+        private Server.Server server;
         private Logger logger = LogUtils.GetClassLogger();
 
-        public Level(short w,  short d, short h)
+        public Level(Server.Server server, short w,  short d, short h)
         {
+            this.server = server;
             Width = w;
             Depth = d;
             Height = h;
@@ -81,6 +84,13 @@ namespace MCarmada.World
             }
 
             Blocks[(y * Height + z) * Width + x] = block;
+
+            Packet packet = new Packet(PacketType.Header.ServerSetBlock);
+            packet.Write((short) x);
+            packet.Write((short) y);
+            packet.Write((short) z);
+            packet.Write(block);
+            server.BroadcastPacket(packet);
 
             return true;
         }

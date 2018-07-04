@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using MCarmada.Server;
+using MCarmada.Utils;
 using MCarmada.World;
 
 namespace MCarmada.Network
@@ -36,6 +37,7 @@ namespace MCarmada.Network
             gzip.Dispose();
 
             player.queuedLevelData = stream.GetBuffer();
+            player.levelDataTime = TimeUtil.GetTimeInMs();
 
             stream.Dispose();
         }
