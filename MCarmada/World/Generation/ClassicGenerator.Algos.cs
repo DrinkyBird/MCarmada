@@ -181,7 +181,7 @@ namespace MCarmada.World.Generation
             }
 
 	        // grow trunk
-	        for (int yy = y; yy < max0 - 1; yy++)
+	        for (int yy = y; yy < max0; yy++)
 	        {
 	            level.SetBlock(x, yy, z, 17);
 	        }
