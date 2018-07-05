@@ -12,6 +12,11 @@ namespace MCarmada.Server
         private uint lastHeartbeat = 0;
         private void SendHeartbeat()
         {
+            if (!Program.Instance.Settings.Broadcast)
+            {
+                return;
+            }
+
             if (CurrentTick - lastHeartbeat < 45 * 20 && lastHeartbeat != 0)
             {
                 return;
@@ -21,13 +26,13 @@ namespace MCarmada.Server
 
             string html = string.Empty;
             string url = @"https://classicube.net/server/heartbeat/?";
-            url += "name=MCarmada+Test&";
-            url += "port=25565&";
+            url += "name=" + Uri.EscapeDataString(ServerName) + "&";
+            url += "port=" + port + "&";
             url += "users=" + GetOnlinePlayers() + "&";
             url += "max=" + players.Length + "&";
-            url += "public=true&";
+            url += "public=" + Program.Instance.Settings.Public + "&";
             url += "salt=" + Salt + "&";
-            url += "public=true&";
+            url += "software=MCarmada&";
 
             logger.Info("Sending heartbeat: " + url);
 

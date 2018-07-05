@@ -199,8 +199,8 @@ namespace MCarmada.Network
         {
             Packet ident = new Packet(PacketType.Header.ServerIdent);
             ident.Write((byte) 0x07);
-            ident.Write("my MCarmada server");
-            ident.Write("my MCarmada server");
+            ident.Write(server.ServerName);
+            ident.Write(server.MessageOfTheDay);
             ident.Write((byte) 0x64);
             Send(ident);
 

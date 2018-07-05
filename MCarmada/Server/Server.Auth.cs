@@ -25,6 +25,11 @@ namespace MCarmada.Server
 
 	    public bool AuthenticateClient(string playerName, string playerKey)
 	    {
+	        if (!Program.Instance.Settings.VerifyNames)
+	        {
+	            return true;
+	        }
+
 	        MD5 md5 = MD5.Create();
 	        byte[] input = Encoding.ASCII.GetBytes(Salt + playerName);
 	        byte[] hash = md5.ComputeHash(input);

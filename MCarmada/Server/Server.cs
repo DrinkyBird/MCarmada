@@ -20,6 +20,18 @@ namespace MCarmada.Server
 
         public uint CurrentTick { get; private set; }
 
+        public string ServerName
+        {
+            get { return Program.Instance.Settings.ServerName; }
+        }
+
+        public string MessageOfTheDay
+        {
+            get { return Program.Instance.Settings.ServerMotd; }
+        }
+
+        private ushort port;
+
         private Logger logger = LogUtils.GetClassLogger();
         private string Salt;
 
@@ -30,11 +42,14 @@ namespace MCarmada.Server
 
         public Server(ushort port)
         {
+            this.port = port;
             Salt = GenerateSalt(32);
 
-            players = new Player[32];
+            Settings settings = Program.Instance.Settings;
+
+            players = new Player[Program.Instance.Settings.MaxPlayers];
             listener = new Listener(this, port);
-            level = new Level(this, 64, 64, 64);
+            level = new Level(this, settings.World, (short)settings.World.Width, (short)settings.World.Depth, (short)settings.World.Height);
         }
 
         public void Tick()

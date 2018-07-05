@@ -10,6 +10,8 @@ namespace MCarmada
 {
     class Program : ITickable
     {
+        public static Program Instance { get; private set; }
+
         static void Main(string[] args)
         {
             new Program();
@@ -17,16 +19,20 @@ namespace MCarmada
 
         private Server.Server server;
         private bool running = true;
+        public Settings Settings;
 
         private Program()
         {
+            Instance = this;
+
             Initialise();
             DoLoop();
         }
 
         private bool Initialise()
         {
-            server = new Server.Server(25565);
+            Settings = Settings.Load();
+            server = new Server.Server(Settings.Port);
 
             return true;
         }

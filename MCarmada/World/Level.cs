@@ -30,7 +30,7 @@ namespace MCarmada.World
         private Server.Server server;
         private Logger logger = LogUtils.GetClassLogger();
 
-        public Level(Server.Server server, short w,  short d, short h)
+        public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
             this.server = server;
             Width = w;
@@ -40,6 +40,8 @@ namespace MCarmada.World
             Seed = (int) DateTime.Now.Ticks;
             logger.Info("Creating world with seed " + Seed + "...");
             Rng = new Random(Seed);
+
+            generator = WorldGenerator.Generators[settings.Generator];
 
             Init();
         }
@@ -52,7 +54,6 @@ namespace MCarmada.World
                 Blocks[i] = (byte) 0;
             }
 
-            generator = new ClassicGenerator();
             Generate();
         }
 
@@ -154,6 +155,8 @@ namespace MCarmada.World
             writer.Write(Width);
             writer.Write(Depth);
             writer.Write(Height);
+            writer.Write(Seed);
+            writer.Write(generator.GetType().FullName);
 
             writer.Dispose();
             stream.Dispose();
