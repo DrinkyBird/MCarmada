@@ -55,12 +55,12 @@ namespace MCarmada.World.Generation
 
                 for (int y = h; y > 0; y--)
                 {
-                    byte next = 0;
+                    Block next = Block.Air;
 
                     if (y <= ((level.Depth / 2)) && y > (level.Depth / 2) - SAND_OFFSET &&
                         level.GetBlock(x, y + 1, z) == 0)
                     {
-                        next = 12;
+                        next = Block.Sand;
                     } 
                     else if (y == h)
                     {
@@ -77,21 +77,21 @@ namespace MCarmada.World.Generation
                     }
                     else if (h - y <= 2 + level.Rng.Next(2))
                     {
-                        next = 2;
+                        next = Block.Grass;
                     }
                     else if (y <= 3 && level.Rng.NextDouble() < 0.25)
                     {
-                        next = 7;
+                        next = Block.Bedrock;
                     }
                     else
                     {
-                        next = 1;
+                        next = Block.Stone;
                     }
 
                     level.SetBlock(x, y, z, next);
                 }
 
-                level.SetBlock(x, 0, z, 7);
+                level.SetBlock(x, 0, z, Block.Bedrock);
             }
         }
     }

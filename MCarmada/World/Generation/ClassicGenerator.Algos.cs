@@ -10,7 +10,7 @@ namespace MCarmada.World.Generation
     // https://github.com/UnknownShadow200/ClassicalSharp/blob/master/ClassicalSharp/Generator/NotchyGenerator.Utils.cs
     partial class ClassicGenerator
 	{
-	    private void FillOblateSpheroid(int centreX, int centreY, int centreZ, double radius, byte block)
+	    private void FillOblateSpheroid(int centreX, int centreY, int centreZ, double radius, Block block)
 	    {
 	        int xStart = (int)Math.Floor(Math.Max(centreX - radius, 0));
 	        int xEnd = (int)Math.Floor(Math.Min(centreX + radius, level.Width - 1));
@@ -34,7 +34,7 @@ namespace MCarmada.World.Generation
 	            if ((dx * dx + 2 * dy * dy + dz * dz) < (radius * radius) &&
 	                level.IsValidBlock(ix, iy, iz))
 	            {
-	                if (level.GetBlock(ix, iy, iz) == 1)
+	                if (level.GetBlock(ix, iy, iz) == Block.Stone)
 	                {
 	                    level.SetBlock(ix, iy, iz, block);
 	                }
@@ -42,7 +42,7 @@ namespace MCarmada.World.Generation
 	        }
 	    }
 
-	    private void FloodFill(int startIndex, byte block)
+	    private void FloodFill(int startIndex, Block block)
 	    {
 	        int oneY = level.Width * level.Height;
 
@@ -137,7 +137,7 @@ namespace MCarmada.World.Generation
 
 	    private void GrowTree(int x, int y, int z, int height)
 	    {
-	        level.SetBlock(x, y, z, 17);
+	        level.SetBlock(x, y, z, Block.Log);
 	        int max0 = y + height;
 	        int max1 = max0 - 1;
 	        int max2 = max0 - 2;
@@ -152,13 +152,13 @@ namespace MCarmada.World.Generation
 
                 if (Math.Abs(xx) == 2 && Math.Abs(zz) == 2)
                 {
-                    if (RandomBool()) level.SetBlock(ax, max3, az, 18);
-                    if (RandomBool()) level.SetBlock(ax, max2, az, 18);
+                    if (RandomBool()) level.SetBlock(ax, max3, az, Block.Leaves);
+                    if (RandomBool()) level.SetBlock(ax, max2, az, Block.Leaves);
                 }
                 else
                 {
-                    level.SetBlock(ax, max3, az, 18);
-                    level.SetBlock(ax, max2, az, 18);
+                    level.SetBlock(ax, max3, az, Block.Leaves);
+                    level.SetBlock(ax, max2, az, Block.Leaves);
                 }
             }
 
@@ -171,19 +171,19 @@ namespace MCarmada.World.Generation
 
                 if (xx == 0 || zz == 0)
                 {
-                    level.SetBlock(ax, max1, az, 18);
-                    level.SetBlock(ax, max0, az, 18);
+                    level.SetBlock(ax, max1, az, Block.Leaves);
+                    level.SetBlock(ax, max0, az, Block.Leaves);
                 }
                 else
                 {
-                    if (RandomBool()) level.SetBlock(ax, max1, az, 18);
+                    if (RandomBool()) level.SetBlock(ax, max1, az, Block.Leaves);
                 } 
             }
 
 	        // grow trunk
 	        for (int yy = y; yy < max0; yy++)
 	        {
-	            level.SetBlock(x, yy, z, 17);
+	            level.SetBlock(x, yy, z, Block.Log);
 	        }
 	    }
 

@@ -21,7 +21,7 @@ namespace MCarmada.World
         public short Depth { get; private set; }
         public short Height { get; private set; }
 
-        public byte[] Blocks;
+        public Block[] Blocks;
         public Random Rng { get; private set; }
         public int Seed { get; private set; }
 
@@ -46,7 +46,7 @@ namespace MCarmada.World
 
         private void Init()
         {
-            Blocks = new byte[Width * Height * Depth];
+            Blocks = new Block[Width * Height * Depth];
             for (int i = 0; i < Blocks.Length; i++)
             {
                 Blocks[i] = (byte) 0;
@@ -76,7 +76,7 @@ namespace MCarmada.World
             return (y * Height + z) * Width + x;
         }
 
-        public bool SetBlock(int x, int y, int z, byte block)
+        public bool SetBlock(int x, int y, int z, Block block)
         {
             if (!IsValidBlock(x, y, z))
             {
@@ -95,7 +95,7 @@ namespace MCarmada.World
             return true;
         }
 
-        public byte GetBlock(int x, int y, int z)
+        public Block GetBlock(int x, int y, int z)
         {
             if (!IsValidBlock(x, y, z))
             {
@@ -138,6 +138,8 @@ namespace MCarmada.World
             string metadataFile = Path.Combine(outDir, "world.mcarmada");
             string blocksFile = Path.Combine(outDir, "blocks.mcarmada");
 
+            byte[] blocks = BlocksAsByteArray();
+
             FileStream stream;
             GZipStream gzip;
             BinaryWriter writer;
@@ -164,12 +166,24 @@ namespace MCarmada.World
 
             writer.Write(LEVEL_VERSION);
             writer.Write(Blocks.Length);
-            writer.Write(XXHash.XXH64(Blocks));
-            writer.Write(Blocks);
+            writer.Write(XXHash.XXH64(blocks));
+            writer.Write(blocks);
 
             writer.Dispose();
             gzip.Dispose();
             stream.Dispose();
+        }
+
+        public byte[] BlocksAsByteArray()
+        {
+            byte[] output = new byte[Blocks.Length];
+
+            for (int i = 0; i < Blocks.Length; i++)
+            {
+                output[i] = (byte) Blocks[i];
+            }
+
+            return output;
         }
     }
 }

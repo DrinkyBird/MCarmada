@@ -24,9 +24,9 @@ namespace MCarmada.World.Generation
             GenerateStrata();
             GenerateCaves();
 
-            GenerateOres(14, 0.5); // Gold
-            GenerateOres(15, 0.7); // Iron
-            GenerateOres(16, 0.9); // Coal
+            GenerateOres(Block.GoldOre, 0.5); // Gold
+            GenerateOres(Block.IronOre, 0.7); // Iron
+            GenerateOres(Block.CoalOre, 0.9); // Coal
 
             GenerateWater();
             GenerateLava();
@@ -112,11 +112,11 @@ namespace MCarmada.World.Generation
 
                 for (int y = 0; y < level.Depth; y++)
                 {
-                    byte block = 0;
+                    Block block = Block.Air;
 
-                    if (y == 0) block = 10;
-                    else if (y <= stoneTransition) block = 1;
-                    else if (y <= dirtTransition) block = 3;
+                    if (y == 0) block = Block.Lava;
+                    else if (y <= stoneTransition) block = Block.Stone;
+                    else if (y <= dirtTransition) block = Block.Grass;
 
                     level.SetBlock(x, y, z, block);
                 }
@@ -183,7 +183,7 @@ namespace MCarmada.World.Generation
             }
         }
 
-        private void GenerateOres(byte block, double abundance)
+        private void GenerateOres(Block block, double abundance)
         {
             int numVeins = (int) ((level.Width * level.Height * level.Depth * abundance) / 16384);
 
@@ -229,8 +229,8 @@ namespace MCarmada.World.Generation
 
             for (int x = 0; x < level.Width; x++)
             {
-                FloodFill(level.GetBlockIndex(x, waterLevel, 0), 8);
-                FloodFill(level.GetBlockIndex(x, waterLevel, level.Height - 1), 8);
+                FloodFill(level.GetBlockIndex(x, waterLevel, 0), Block.Water);
+                FloodFill(level.GetBlockIndex(x, waterLevel, level.Height - 1), Block.Water);
 
                 done += 2;
                 percent = (int)(((double)done / total) * 100.0);
@@ -243,8 +243,8 @@ namespace MCarmada.World.Generation
 
             for (int y = 0; y < level.Height; y ++)
             {
-                FloodFill(level.GetBlockIndex(0, waterLevel, y), 8);
-                FloodFill(level.GetBlockIndex(level.Width - 1, waterLevel, y), 8);
+                FloodFill(level.GetBlockIndex(0, waterLevel, y), Block.Water);
+                FloodFill(level.GetBlockIndex(level.Width - 1, waterLevel, y), Block.Water);
 
                 done += 2;
                 percent = (int)(((double)done / total) * 100.0);
@@ -261,7 +261,7 @@ namespace MCarmada.World.Generation
                 int z = level.Rng.Next(0, level.Height);
                 int y = waterLevel - level.Rng.Next(0, 2);
 
-                FloodFill(level.GetBlockIndex(x, y, z), 8);
+                FloodFill(level.GetBlockIndex(x, y, z), Block.Water);
 
                 done++;
                 percent = (int)(((double)done / total) * 100.0);
@@ -286,7 +286,7 @@ namespace MCarmada.World.Generation
                 int z = level.Rng.Next(0, level.Height);
                 int y = (int) ((waterLevel - 3) * level.Rng.NextDouble() * level.Rng.NextDouble());
 
-                FloodFill(level.GetBlockIndex(x, y, z), 10);
+                FloodFill(level.GetBlockIndex(x, y, z), Block.Lava);
 
                 done++;
                 int percent = (int)(((double)done / numSources) * 100.0);
@@ -313,22 +313,22 @@ namespace MCarmada.World.Generation
                 bool gravelChance = noise2.Compute(x, z) > 12;
 
                 int y = heightMap[x + z * level.Width];
-                byte above = level.GetBlock(x, y + 1, z);
+                Block above = level.GetBlock(x, y + 1, z);
 
-                if (above == 8 && gravelChance)
+                if (above == Block.Water && gravelChance)
                 {
-                    level.SetBlock(x, y, z, 13);
+                    level.SetBlock(x, y, z, Block.Gravel);
                 }
 
                 else if (above == 0)
                 {
                     if (y <= (level.Depth / 2) && sandChance)
                     {
-                        level.SetBlock(x, y, z, 12);
+                        level.SetBlock(x, y, z, Block.Sand);
                     }
                     else
                     {
-                        level.SetBlock(x, y, z, 2);
+                        level.SetBlock(x, y, z, Block.Grass);
                     }
                 }
 
@@ -355,7 +355,7 @@ namespace MCarmada.World.Generation
 
             for (int i = 0; i < numFlowers; i++)
             {
-                byte flowerType = level.Rng.Next(2) == 0 ? (byte)37 : (byte)38;
+                Block flowerType = level.Rng.Next(2) == 0 ? Block.Dandelion : Block.Rose;
 
                 int patchX = level.Rng.Next(0, level.Width);
                 int patchZ = level.Rng.Next(0, level.Height);
@@ -373,9 +373,9 @@ namespace MCarmada.World.Generation
                         if (level.IsValidBlock(flowerX, 0, flowerZ))
                         {
                             int flowerY = heightMap[flowerX + flowerZ * level.Width] + 1;
-                            byte below = level.GetBlock(flowerX, flowerY - 1, flowerZ);
+                            Block below = level.GetBlock(flowerX, flowerY - 1, flowerZ);
 
-                            if (level.GetBlock(flowerX, flowerY, flowerZ) == 0 && below == 2)
+                            if (level.GetBlock(flowerX, flowerY, flowerZ) == 0 && below == Block.Grass)
                             {
                                 level.SetBlock(flowerX, flowerY, flowerZ, flowerType);
                             }
@@ -394,7 +394,7 @@ namespace MCarmada.World.Generation
 
             for (int i = 0; i < numShrooms; i++)
             {
-                byte shroomType = level.Rng.Next(2) == 0 ? (byte)39 : (byte)40;
+                Block shroomType = level.Rng.Next(2) == 0 ? Block.BrownMushroom : Block.RedMushroom;
 
                 int patchX = level.Rng.Next(0, level.Width);
                 int patchY = level.Rng.Next(0, level.Depth);
@@ -414,9 +414,9 @@ namespace MCarmada.World.Generation
 
                         if (level.IsValidBlock(shroomX, 0, shroomZ) && shroomY < heightMap[shroomX + shroomZ * level.Width] - 1)
                         {
-                            byte below = level.GetBlock(shroomX, shroomY - 1, shroomZ);
+                            Block below = level.GetBlock(shroomX, shroomY - 1, shroomZ);
 
-                            if (level.GetBlock(shroomX, shroomY, shroomZ) == 0 && below == 1)
+                            if (level.GetBlock(shroomX, shroomY, shroomZ) == 0 && below == Block.Stone)
                             {
                                 level.SetBlock(shroomX, shroomY, shroomZ, shroomType);
                             }

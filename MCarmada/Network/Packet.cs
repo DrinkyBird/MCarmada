@@ -47,6 +47,12 @@ namespace MCarmada.Network
             if (reader != null) reader.Dispose();
         }
 
+        public Packet Write(Block value)
+        {
+            writer.Write((byte)value);
+            return this;
+        }
+
         public Packet Write(byte value)
         {
             writer.Write(value);

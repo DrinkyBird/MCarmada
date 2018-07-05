@@ -140,7 +140,7 @@ namespace MCarmada.Server
                 int y = packet.ReadShort();
                 int z = packet.ReadShort();
                 bool destroyed = packet.ReadByte() == 0;
-                byte newBlock = destroyed ? (byte) 0 : packet.ReadByte();
+                Block newBlock = destroyed ? Block.Air : (Block) packet.ReadByte();
 
                 level.SetBlock(x, y, z, newBlock);
             }

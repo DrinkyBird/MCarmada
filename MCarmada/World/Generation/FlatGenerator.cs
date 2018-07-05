@@ -15,19 +15,19 @@ namespace MCarmada.World.Generation
             for (int y = 0; y < top; y++)
             for (int z = 0; z < level.Height; z++)
             {
-                byte next = 0;
+                Block next = Block.Air;
 
                 if (y == top - 1)
                 {
-                    next = 2;
+                    next = Block.Grass;
                 }
                 else if (y >= top - 6)
                 {
-                    next = 3;
+                    next = Block.Dirt;
                 }
                 else
                 {
-                    next = 1;
+                    next = Block.Stone;
                 }
 
                 level.SetBlock(x, y, z, next);

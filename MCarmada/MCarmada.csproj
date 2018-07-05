@@ -68,6 +68,7 @@
     <Compile Include="Utils\FixedPoint.cs" />
     <Compile Include="Utils\LogUtils.cs" />
     <Compile Include="Utils\TimeUtil.cs" />
+    <Compile Include="World\Block.cs" />
     <Compile Include="World\BlockPos.cs" />
     <Compile Include="World\Generation\ArmadaCraftGenerator.cs" />
     <Compile Include="World\Generation\ClassicGenerator.cs" />
