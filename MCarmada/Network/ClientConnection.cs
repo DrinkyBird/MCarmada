@@ -21,7 +21,7 @@ namespace MCarmada.Network
         private MemoryStream inBuffer = new MemoryStream();
         private MemoryStream outBuffer = new MemoryStream();
 
-        private List<KeyValuePair<string, int>> clientSupportedExtensions = new List<KeyValuePair<string, int>>();
+        public List<KeyValuePair<string, int>> clientSupportedExtensions = new List<KeyValuePair<string, int>>();
 
         private string clientName;
         private Player player = null;
@@ -92,7 +92,6 @@ namespace MCarmada.Network
 
             while (inBuffer.Position < len)
             {
-
                 PacketType.Header type = (PacketType.Header) inBuffer.ReadByte();
 
                 int packetLen = PacketType.GetPacketSize(type);
@@ -153,8 +152,16 @@ namespace MCarmada.Network
                 {
                     Packet cpeIdent = new Packet(PacketType.Header.CpeExtInfo);
                     cpeIdent.Write("MCarmada");
-                    cpeIdent.Write((short)0);
+                    cpeIdent.Write((short)Server.Server.CPE_EXTENSIONS.Length);
                     Send(cpeIdent);
+
+                    foreach (var extension in Server.Server.CPE_EXTENSIONS)
+                    {
+                        Packet entry = new Packet(PacketType.Header.CpeExtEntry);
+                        entry.Write(extension.Name);
+                        entry.Write(extension.Version);
+                        Send(entry);
+                    }
                 }
                 else
                 {

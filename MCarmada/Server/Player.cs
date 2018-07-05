@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using MCarmada.Api;
+using MCarmada.Cpe;
 using MCarmada.Network;
 using MCarmada.Utils;
 using MCarmada.World;
@@ -34,6 +35,7 @@ namespace MCarmada.Server
         private uint lastPing = 0;
 
         private Logger logger;
+        private CpeExtension[] extensions;
 
         public Player(Server server, ClientConnection connection, string name, int id)
         {
@@ -44,6 +46,14 @@ namespace MCarmada.Server
             ID = id;
 
             logger = LogManager.GetLogger("Player[" + Name + "]");
+
+            extensions = new CpeExtension[connection.clientSupportedExtensions.Count];
+            for (int i = 0; i < extensions.Length; i++)
+            {
+                KeyValuePair<string, int> pair = connection.clientSupportedExtensions[i];
+                CpeExtension ext = new CpeExtension(pair.Key, pair.Value);
+                extensions[i] = ext;
+            }
         }
 
         public void Tick()
@@ -214,6 +224,19 @@ namespace MCarmada.Server
             Packet despawn = new Packet(PacketType.Header.DespawnPlayer);
             despawn.Write((byte) ID);
             server.BroadcastPacket(despawn);
+        }
+
+        public bool SupportsExtension(string name, int version = 1)
+        {
+            foreach (var extension in extensions)
+            {
+                if (extension.Name == name && extension.Version == version)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

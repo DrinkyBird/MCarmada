@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MCarmada.Api;
+using MCarmada.Cpe;
 using MCarmada.Network;
 using MCarmada.Utils;
 using MCarmada.World;
@@ -21,6 +22,10 @@ namespace MCarmada.Server
 
         private Logger logger = LogUtils.GetClassLogger();
         private string Salt;
+
+        public static readonly CpeExtension[] CPE_EXTENSIONS =
+        {
+        };
 
         public Server(ushort port)
         {
