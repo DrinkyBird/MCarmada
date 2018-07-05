@@ -37,6 +37,8 @@ namespace MCarmada.Server
         private Logger logger;
         private CpeExtension[] extensions;
 
+        private string messageBuffer = String.Empty;
+
         public Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
@@ -147,7 +149,56 @@ namespace MCarmada.Server
                 byte unused = packet.ReadByte();
                 string message = packet.ReadString();
 
-                server.BroadcastMessage("<" + Name + "> " + message);
+                if (SupportsExtension(CpeExtension.LongerMessages))
+                {
+                    if (unused == 0x01)
+                    {
+                        messageBuffer += message;
+                    }
+                    else if (unused == 0x00)
+                    {
+                        if (messageBuffer != String.Empty)
+                        {
+                            messageBuffer += message;
+                            messageBuffer = "<" + Name + "> &f" + messageBuffer;
+
+                            List<string> lines = new List<string>();
+                            lines.Add(messageBuffer.Substring(0, 64));
+                            messageBuffer = messageBuffer.Substring(64);
+                            string buf = String.Empty;
+
+                            const string linePrefix = " &f";
+                            int lineLen = 64 - linePrefix.Length;
+
+                            for (int i = 0; i < messageBuffer.Length; i++)
+                            {
+                                buf += messageBuffer[i];
+
+                                if (i % lineLen == 0 && i != 0)
+                                {
+                                    buf = linePrefix + buf;
+                                    lines.Add(buf);
+                                    buf = string.Empty;
+                                }
+                            }
+
+                            foreach (var line in lines)
+                            {
+                                server.BroadcastMessage(line);
+                            }
+
+                            messageBuffer = String.Empty;
+                        }
+                        else
+                        {
+                            server.BroadcastMessage("<" + Name + "> &f" + message);
+                        }
+                    }
+                }
+                else
+                {
+                    server.BroadcastMessage("<" + Name + "> &f" + message);
+                }
             }
             else if (packet.Type == PacketType.Header.PlayerPosition)
             {

@@ -25,6 +25,7 @@ namespace MCarmada.Server
 
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
+            new CpeExtension(CpeExtension.LongerMessages, 1)
         };
 
         public Server(ushort port)
@@ -33,7 +34,7 @@ namespace MCarmada.Server
 
             players = new Player[32];
             listener = new Listener(this, port);
-            level = new Level(this, 512, 64, 512);
+            level = new Level(this, 64, 64, 64);
         }
 
         public void Tick()
