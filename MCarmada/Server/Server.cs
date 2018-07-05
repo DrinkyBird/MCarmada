@@ -28,7 +28,7 @@ namespace MCarmada.Server
 
             players = new Player[32];
             listener = new Listener(this, port);
-            level = new Level(this, 256, 256, 256);
+            level = new Level(this, 512, 64, 512);
         }
 
         public void Tick()

@@ -14,32 +14,55 @@ namespace MCarmada.Network
     class LevelCompresser
     {
         private Level level;
-        private Player player;
 
-        public LevelCompresser(Level level, Player player)
+        private MemoryStream stream;
+        private GZipStream gzip;
+        private BinaryWriter writer;
+
+        private byte[] data;
+
+        public int Position { get; private set; }
+        public int Length { get; private set; }
+
+        public LevelCompresser(Level level)
         {
-            this.level = level;
-            this.player = player;
+            stream = new MemoryStream();
+            gzip = new GZipStream(stream, CompressionMode.Compress, false);
+            writer = new BinaryWriter(gzip);
+
+            writer.Write((int) IPAddress.HostToNetworkOrder(level.Blocks.Length));
         }
 
-        public void Run()
+        public void AddChunk(byte[] chunk)
         {
-            MemoryStream stream = new MemoryStream();
-            GZipStream gzip = new GZipStream(stream, CompressionMode.Compress);
-            BinaryWriter writer = new BinaryWriter(gzip);
+            writer.Write(chunk);
+        }
 
-            byte[] blocks = level.Blocks;
-
-            writer.Write(IPAddress.HostToNetworkOrder((int) blocks.Length));
-            writer.Write(blocks);
-
+        public void Flush()
+        {
             writer.Dispose();
             gzip.Dispose();
 
-            player.queuedLevelData = stream.GetBuffer();
-            player.levelDataTime = TimeUtil.GetTimeInMs();
-
+            byte[] buf = stream.GetBuffer();
+            Length = buf.Length;
+            data = new byte[Length];
+            Array.Copy(buf, 0, data, 0, buf.Length);
             stream.Dispose();
+
+            Position = 0;
+        }
+
+        public byte[] GetChunk(out int length)
+        {
+            int len = Math.Min(1024, Length - Position);
+
+            byte[] chunk = new byte[len];
+            Array.Copy(data, Position, chunk, 0, chunk.Length);
+
+            Position += len;
+
+            length = len;
+            return chunk;
         }
     }
 }

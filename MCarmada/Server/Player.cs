@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using MCarmada.Api;
@@ -19,11 +23,9 @@ namespace MCarmada.Server
         public string Name { get; private set; }
 
         private LevelCompresser levelCompresser;
-        private Thread levelCompresserThead;
-        public byte[] queuedLevelData = null;
-        public double levelDataTime = 0;
-        private int levelDataOffset = 0;
-        private int chunksThisTick = 0;
+        private bool compressed = false;
+        private bool levelSent = false;
+        private int dataOffset = 0;
 
         public int ID { get; private set; }
 
@@ -46,17 +48,9 @@ namespace MCarmada.Server
 
         public void Tick()
         {
-            if (queuedLevelData != null)
+            if (!levelSent)
             {
-                for (chunksThisTick = 0; chunksThisTick < 1; chunksThisTick++)
-                {
-                    if (queuedLevelData == null)
-                    {
-                        break;
-                    }
-
-                    HandleLevelData();
-                }
+                HandleLevelData();
             }
 
             if (server.CurrentTick - lastPing >= 20)
@@ -69,45 +63,58 @@ namespace MCarmada.Server
         {
             Send(new Packet(PacketType.Header.LevelInit));
 
-            levelCompresser = new LevelCompresser(server.level, this);
-            levelCompresserThead = new Thread(levelCompresser.Run);
-            levelCompresserThead.Name = "LevelCompression for " + Name;
-            levelCompresserThead.Start();
+            levelCompresser = new LevelCompresser(server.level);
         }
 
         private void HandleLevelData()
         {
-            if (TimeUtil.GetTimeInMs() - levelDataTime < 1000.0)
+            if (!compressed)
             {
-                return;
+                int total = server.level.Blocks.Length;
+                int length = Math.Min(16 * 1024, total - dataOffset);
+
+                byte[] array = new byte[length];
+                Array.Copy(server.level.Blocks, dataOffset, array, 0, array.Length);
+                dataOffset += length;
+
+                levelCompresser.AddChunk(array);
+
+                if (dataOffset == total)
+                {
+                    levelCompresser.Flush();
+                    compressed = true;
+                }
             }
-
-            int len = Math.Min(1024, queuedLevelData.Length - levelDataOffset);
-            byte[] output = new byte[len];
-            Array.Copy(queuedLevelData, levelDataOffset, output, 0, len);
-
-            levelDataOffset += len;
-
-            int percent = (int) (((double)levelDataOffset / (double)queuedLevelData.Length) * 100.0);
-            int bpercent = (int) (((double)levelDataOffset / (double)queuedLevelData.Length) * 100/0);
-            Packet chunk = new Packet(PacketType.Header.LevelChunk);
-            chunk.Write((short) len);
-            chunk.Write(output);
-            chunk.Write((byte) bpercent);
-            Send(chunk);
-
-            if (levelDataOffset == queuedLevelData.Length)
+            else
             {
-                Packet finish = new Packet(PacketType.Header.LevelFinish);
-                finish.Write((short) server.level.Width);
-                finish.Write((short) server.level.Depth);
-                finish.Write((short) server.level.Height);
-                Send(finish);
+                int length;
+                for (int i = 0; i < 2; i++)
+                {
+                    byte[] chunk = levelCompresser.GetChunk(out length);
 
-                queuedLevelData = null;
-                levelDataOffset = 0;
+                    Packet packet = new Packet(PacketType.Header.LevelChunk);
+                    packet.Write((short)length);
+                    packet.Write(chunk);
+                    packet.Write((byte)0);
+                    Send(packet);
 
-                SpawnPlayer();
+                    logger.Info(levelCompresser.Position + " / " + levelCompresser.Length);
+
+                    if (levelCompresser.Position >= levelCompresser.Length)
+                    {
+                        levelSent = true;
+
+                        Packet finish = new Packet(PacketType.Header.LevelFinish);
+                        finish.Write((short)server.level.Width);
+                        finish.Write((short)server.level.Depth);
+                        finish.Write((short)server.level.Height);
+                        Send(finish);
+
+                        SpawnPlayer();
+
+                        break;
+                    }
+                }
             }
         }
 

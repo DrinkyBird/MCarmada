@@ -143,6 +143,12 @@ namespace MCarmada.Network
                     return;
                 }
 
+                if (clientName != "csnxs" && clientName != "Tribeam")
+                {
+                    Disconnect("You are not on the whitelist!");
+                    return;
+                }
+
                 if (isCpe)
                 {
                     Packet cpeIdent = new Packet(PacketType.Header.CpeExtInfo);
