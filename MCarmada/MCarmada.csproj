@@ -72,6 +72,7 @@
     <Compile Include="World\BlockPos.cs" />
     <Compile Include="World\Generation\ArmadaCraftGenerator.cs" />
     <Compile Include="World\Generation\ClassicGenerator.cs" />
+    <Compile Include="World\Generation\DebugGenerator.cs" />
     <Compile Include="World\Generation\FlatGenerator.cs" />
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplex.cs" />
