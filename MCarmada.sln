@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCarmada", "MCarmada\MCarmada.csproj", "{63BD4A41-9316-4C5F-AC89-BFA2B9F563A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapViewer", "MapViewer\MapViewer.csproj", "{5F2C7939-CE8A-4173-8E7E-11AD162F6DE1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,10 +13,6 @@ Global
 		{63BD4A41-9316-4C5F-AC89-BFA2B9F563A6}.Debug|x86.Build.0 = Debug|x86
 		{63BD4A41-9316-4C5F-AC89-BFA2B9F563A6}.Release|x86.ActiveCfg = Release|x86
 		{63BD4A41-9316-4C5F-AC89-BFA2B9F563A6}.Release|x86.Build.0 = Release|x86
-		{5F2C7939-CE8A-4173-8E7E-11AD162F6DE1}.Debug|x86.ActiveCfg = Debug|x86
-		{5F2C7939-CE8A-4173-8E7E-11AD162F6DE1}.Debug|x86.Build.0 = Debug|x86
-		{5F2C7939-CE8A-4173-8E7E-11AD162F6DE1}.Release|x86.ActiveCfg = Release|x86
-		{5F2C7939-CE8A-4173-8E7E-11AD162F6DE1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

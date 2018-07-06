@@ -108,6 +108,16 @@ namespace MCarmada.World
                 AddScheduledTick(x, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
             }
 
+            else if (block == Block.Water)
+            {
+                AddScheduledTick(x, y, z, 1, TickEvent.PlaceWater, TickTiming.Absolute);
+            }
+
+            else if (block == Block.Lava)
+            {
+                AddScheduledTick(x, y, z, 1, TickEvent.PlaceLava, TickTiming.Absolute);
+            }
+
             else if (CanBlockFall(block))
             {
                 AddScheduledTick(x, y, z, 1, TickEvent.BlockFall);
@@ -155,48 +165,48 @@ namespace MCarmada.World
 
             else if (tick.Event == TickEvent.PlaceWater)
             {
-                if ((north == Block.Water || east == Block.Water || south == Block.Water || west == Block.Water ||
-                    above == Block.Water) && block == Block.Air)
+                if (((north == Block.Water || east == Block.Water || south == Block.Water || west == Block.Water ||
+                    above == Block.Water) && CanReplaceWithLiquid(block)) || block == Block.Water)
                 {
-                    SetBlock(x, y, z, Block.Water);
+                    if (block != Block.Water) SetBlock(x, y, z, Block.Water);
 
-                    if (northValid && north == Block.Air) AddScheduledTick(x, y, z + 1, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
+                    if (northValid && CanReplaceWithLiquid(north)) AddScheduledTick(x, y, z + 1, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
                     else if (northValid && (north == Block.Lava || north == Block.LavaStill)) SetBlock(x, y, z + 1, Block.Obsidian);
 
-                    if (eastValid && east == Block.Air) AddScheduledTick(x + 1, y, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
+                    if (eastValid && CanReplaceWithLiquid(east)) AddScheduledTick(x + 1, y, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
                     else if (eastValid && (east == Block.Lava || east == Block.LavaStill)) SetBlock(x + 1, y, z, Block.Obsidian);
 
-                    if (southValid && south == Block.Air) AddScheduledTick(x, y, z - 1, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
+                    if (southValid && CanReplaceWithLiquid(south)) AddScheduledTick(x, y, z - 1, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
                     else if (southValid && (south == Block.Lava || south == Block.LavaStill)) SetBlock(x, y, z - 1, Block.Obsidian);
 
-                    if (westValid && west == Block.Air) AddScheduledTick(x - 1, y, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
+                    if (westValid && CanReplaceWithLiquid(west)) AddScheduledTick(x - 1, y, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
                     else if (westValid && (west == Block.Lava || west == Block.LavaStill)) SetBlock(x - 1, y, z, Block.Obsidian);
 
-                    if (belowValid && below == Block.Air) AddScheduledTick(x, y - 1, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
+                    if (belowValid && CanReplaceWithLiquid(below)) AddScheduledTick(x, y - 1, z, WATER_TICK_DELAY, TickEvent.PlaceWater, TickTiming.Modulus);
                     else if (belowValid && (below == Block.Lava || below == Block.LavaStill)) SetBlock(x, y - 1, z, Block.Obsidian);
                 }
             }
 
             else if (tick.Event == TickEvent.PlaceLava)
             {
-                if ((north == Block.Lava || east == Block.Lava || south == Block.Lava || west == Block.Lava ||
-                    above == Block.Lava) && block == Block.Air)
+                if (((north == Block.Lava || east == Block.Lava || south == Block.Lava || west == Block.Lava ||
+                    above == Block.Lava || block == Block.Lava) && CanReplaceWithLiquid(block)) || block == Block.Lava)
                 {
-                    SetBlock(x, y, z, Block.Lava);
+                    if (block != Block.Lava) SetBlock(x, y, z, Block.Lava);
 
-                    if (northValid && north == Block.Air) AddScheduledTick(x, y, z + 1, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
+                    if (northValid && CanReplaceWithLiquid(north)) AddScheduledTick(x, y, z + 1, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
                     else if (northValid && (north == Block.Water || north == Block.WaterStill)) SetBlock(x, y, z + 1, Block.Stone);
 
-                    if (eastValid && east == Block.Air) AddScheduledTick(x + 1, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
+                    if (eastValid && CanReplaceWithLiquid(east)) AddScheduledTick(x + 1, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
                     else if (eastValid && (east == Block.WaterStill || east == Block.WaterStill)) SetBlock(x + 1, y, z, Block.Stone);
 
-                    if (southValid && south == Block.Air) AddScheduledTick(x, y, z - 1, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
+                    if (southValid && CanReplaceWithLiquid(south)) AddScheduledTick(x, y, z - 1, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
                     else if (southValid && (south == Block.Water || south == Block.WaterStill)) SetBlock(x, y, z - 1, Block.Stone);
 
-                    if (westValid && west == Block.Air) AddScheduledTick(x - 1, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
+                    if (westValid && CanReplaceWithLiquid(west)) AddScheduledTick(x - 1, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
                     else if (westValid && (west == Block.Water || west == Block.WaterStill)) SetBlock(x - 1, y, z, Block.Stone);
 
-                    if (belowValid && below == Block.Air) AddScheduledTick(x, y - 1, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
+                    if (belowValid && CanReplaceWithLiquid(below)) AddScheduledTick(x, y - 1, z, LAVA_TICK_DELAY, TickEvent.PlaceLava, TickTiming.Modulus);
                     else if (belowValid && (below == Block.Water || below == Block.WaterStill)) SetBlock(x, y - 1, z, Block.Stone);
                 }
             }

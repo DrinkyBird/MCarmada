@@ -133,5 +133,11 @@ namespace MCarmada.World
             return (block != Block.Air && block != Block.Water && block != Block.WaterStill && block != Block.Lava &&
                     block != Block.LavaStill);
         }
+
+        private bool CanReplaceWithLiquid(Block block)
+        {
+            return (block == Block.Air || block == Block.Dandelion || block == Block.Rose ||
+                    block == Block.BrownMushroom || block == Block.RedMushroom);
+        }
     }
 }

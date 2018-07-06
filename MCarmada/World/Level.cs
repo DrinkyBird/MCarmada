@@ -99,8 +99,6 @@ namespace MCarmada.World
                 server.BroadcastBlockChange(x, y, z, block);
             }
 
-            if ((x == 0 || x == Width) && (y == Height/2) && block == Block.Air) SetBlock(x, y, z, Block.Water);
-
             return true;
         }
 
