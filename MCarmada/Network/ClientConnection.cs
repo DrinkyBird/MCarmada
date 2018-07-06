@@ -225,6 +225,11 @@ namespace MCarmada.Network
 
         public void Send(Packet packet)
         {
+            if (!Connected)
+            {
+                return;
+            }
+
             if (packet.GetLength() - 1 != PacketType.GetPacketSize(packet.Type))
             {
                 throw new InvalidOperationException("Length of packet " + packet.Type + " is wrong: " + packet.GetLength() + " should be " +

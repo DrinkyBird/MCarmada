@@ -75,6 +75,8 @@ namespace MCarmada.Server
             UpdateConsoleTitle();
             SendHeartbeat();
 
+            level.Tick();
+
             CurrentTick++;
         }
 

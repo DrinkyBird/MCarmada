@@ -85,7 +85,9 @@
     <Compile Include="World\Generation\WorldGenerator.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="World\Level.Algos.cs" />
     <Compile Include="World\Level.cs" />
+    <Compile Include="World\Level.Tick.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NLog.config">

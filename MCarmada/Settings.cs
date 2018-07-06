@@ -24,6 +24,9 @@ namespace MCarmada
             public int Depth { get; set; }
             public int Height { get; set; }
             public string Generator { get; set; }
+            public bool WaterFlow { get; set; }
+            public bool LavaFlow { get; set; }
+            public bool GrowTrees { get; set; }
         }
 
         public WorldSettings World { get; set; }

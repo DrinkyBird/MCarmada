@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Extensions.Data;
+using MCarmada.Api;
 using MCarmada.Network;
 using MCarmada.Utils;
 using MCarmada.World.Generation;
@@ -13,7 +14,7 @@ using NLog;
 
 namespace MCarmada.World
 {
-    class Level
+    partial class Level : ITickable
     {
         public static readonly int LEVEL_VERSION = 1;
 
@@ -31,8 +32,11 @@ namespace MCarmada.World
         private Server.Server server;
         private Logger logger = LogUtils.GetClassLogger();
 
+        private Settings.WorldSettings settings;
+
         public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
+            this.settings = settings;
             this.server = server;
             Width = w;
             Depth = d;
@@ -87,6 +91,8 @@ namespace MCarmada.World
             }
 
             Blocks[(y * Height + z) * Width + x] = block;
+
+            ScheduleBlockTick(x, y, z);
 
             if (Generated)
             {

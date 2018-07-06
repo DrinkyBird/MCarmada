@@ -6,7 +6,10 @@ verify_names: false
 max_players: 32
 broadcast: false
 world:
-    width: 64
-    depth: 64
-    height: 64
+    width: 128
+    depth: 128
+    height: 128
     generator: classic
+    water_flow: true
+    lava_flow: true
+    grow_trees: true

@@ -453,9 +453,9 @@ namespace MCarmada.World.Generation
                             int treeY = heightMap[treeX + treeZ * level.Width] + 1;
                             int treeHeight = level.Rng.Next(1, 3) + 4;
 
-                            if (IsSpaceForTree(treeX, treeY, treeZ, treeHeight))
+                            if (level.IsSpaceForTree(treeX, treeY, treeZ, treeHeight))
                             {
-                                GrowTree(treeX, treeY, treeZ, treeHeight);
+                                level.GrowTree(treeX, treeY, treeZ, treeHeight);
                             }
                         }
                     }
