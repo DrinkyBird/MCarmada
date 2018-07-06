@@ -15,6 +15,8 @@ namespace MCarmada.Network
 {
     class ClientConnection
     {
+        private static readonly int MAX_OUT_BUF_SIZE = 16 * 1024 * 1024;
+
         private Server.Server server;
         private Socket socket;
         private IPAddress address;
@@ -240,7 +242,7 @@ namespace MCarmada.Network
             byte[] bytes = packet.GetBytes();
             int len = bytes.Length;
 
-            if (outBuffer.Length + len > outBuffer.Capacity)
+            if (outBuffer.Length + len > MAX_OUT_BUF_SIZE)
             {
                 Flush();
             }
