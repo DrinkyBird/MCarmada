@@ -90,13 +90,6 @@ namespace MCarmada.World
                 return false;
             }
 
-            if ((block == Block.Sand || block == Block.Gravel) && settings.BlockFall && Generated)
-            {
-                Block oldBlock = GetBlock(x, y, z);
-                server.BroadcastBlockChange(x, y, z, oldBlock);
-                y = DoBlockFall(x, y, z);
-            }
-
             Blocks[(y * Height + z) * Width + x] = block;
 
             ScheduleBlockTick(x, y, z);

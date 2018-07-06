@@ -15,7 +15,8 @@ namespace MCarmada.World
         {
             GrowTree,
             PlaceWater,
-            PlaceLava
+            PlaceLava,
+            BlockFall
         }
 
         public struct ScheduledTick
@@ -67,8 +68,8 @@ namespace MCarmada.World
             Block east = GetBlock(x + 1, y, z);
             Block south = GetBlock(x, y, z - 1);
             Block west = GetBlock(x - 1, y, z);
-            Block above = GetBlock(x - 1, y + 1, z);
-            Block below = GetBlock(x - 1, y - 1, z);
+            Block above = GetBlock(x, y + 1, z);
+            Block below = GetBlock(x, y - 1, z);
 
             if (block == Block.Sapling && settings.GrowTrees)
             {
@@ -85,6 +86,16 @@ namespace MCarmada.World
                 above == Block.Lava) && block != Block.Lava && settings.LavaFlow)
             {
                 AddScheduledTick(x, y, z, LAVA_TICK_DELAY, TickEvent.PlaceLava);
+            }
+
+            else if (CanBlockFall(block))
+            {
+                AddScheduledTick(x, y, z, 1, TickEvent.BlockFall);
+            }
+
+            if (CanBlockFall(above))
+            {
+                AddScheduledTick(x, y + 1, z, 1, TickEvent.BlockFall);
             }
         }
 
@@ -168,6 +179,14 @@ namespace MCarmada.World
                     if (belowValid && below == Block.Air) AddScheduledTick(x, y - 1, z, LAVA_TICK_DELAY, TickEvent.PlaceLava);
                     else if (belowValid && (below == Block.Water || below == Block.WaterStill)) SetBlock(x, y - 1, z, Block.Stone);
                 }
+            }
+
+            else if (tick.Event == TickEvent.BlockFall)
+            {
+                int yy = DoBlockFall(x, y, z);
+
+                SetBlock(x, y, z, Block.Air);
+                SetBlock(x, yy, z, block);
             }
         }
     }

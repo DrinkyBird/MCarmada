@@ -116,6 +116,11 @@ namespace MCarmada.World
             return Rng.Next(2) == 0;
         }
 
+        private bool CanBlockFall(Block block)
+        {
+            return (block == Block.Sand || block == Block.Gravel);
+        }
+
         private int DoBlockFall(int x, int y, int z)
         {
             int yy = y;
