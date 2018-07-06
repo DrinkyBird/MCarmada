@@ -310,6 +310,11 @@ namespace MCarmada.Server
             server.BroadcastPacket(despawn);
         }
 
+        public void Disconnect(string reason)
+        {
+            connection.Disconnect(reason);
+        }
+
         public bool SupportsExtension(string name, int version = 1)
         {
             foreach (var extension in extensions)

@@ -8,7 +8,7 @@ using NLog;
 
 namespace MCarmada.Network
 {
-    class Listener
+    class Listener : IDisposable
     {
         private Server.Server server;
         private TcpListener socket;
@@ -17,17 +17,25 @@ namespace MCarmada.Network
 
         private Logger logger = Utils.LogUtils.GetClassLogger();
 
+        private bool running = false;
+
         public Listener(Server.Server server, ushort port)
         {
             this.server = server;
             socket = new TcpListener(IPAddress.Any, port);
             socket.Start();
+            running = true;
 
             logger.Info("Now listening on port " + port);
         }
 
         public void AcceptNewConnections()
         {
+            if (!running)
+            {
+                return;
+            }
+
             while (socket.Pending())
             {
                 Socket client = socket.AcceptSocket();
@@ -39,6 +47,12 @@ namespace MCarmada.Network
                 ClientConnection connection = new ClientConnection(server, client);
                 Connections.Add(connection);
             }
+        }
+
+        public void Dispose()
+        {
+            running = false;
+            socket.Stop();
         }
     }
 }

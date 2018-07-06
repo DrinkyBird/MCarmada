@@ -11,7 +11,7 @@ using NLog;
 
 namespace MCarmada.Server
 {
-    partial class Server : ITickable
+    partial class Server : ITickable, IDisposable
     {
         public Listener listener;
 
@@ -231,6 +231,21 @@ namespace MCarmada.Server
         private void UpdateConsoleTitle()
         {
             Console.Title = "MCarmada - " + GetOnlinePlayers() + " players";
+        }
+
+        public void Dispose()
+        {
+            foreach (var player in players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                player.Disconnect("Server shutting down");
+            }
+
+            listener.Dispose();
         }
     }
 }
