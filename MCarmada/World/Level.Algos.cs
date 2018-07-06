@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace MCarmada.World
 {
@@ -117,6 +114,19 @@ namespace MCarmada.World
         private bool RandomBool()
         {
             return Rng.Next(2) == 0;
+        }
+
+        private int DoBlockFall(int x, int y, int z)
+        {
+            int yy = y;
+            while (!IsBlockSolid(GetBlock(x, yy - 1, z))) yy--;
+            return yy;
+        }
+
+        public bool IsBlockSolid(Block block)
+        {
+            return (block != Block.Air && block != Block.Water && block != Block.WaterStill && block != Block.Lava &&
+                    block != Block.LavaStill);
         }
     }
 }

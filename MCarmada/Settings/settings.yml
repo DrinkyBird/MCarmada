@@ -13,3 +13,4 @@ world:
     water_flow: true
     lava_flow: true
     grow_trees: true
+    block_fall: true
