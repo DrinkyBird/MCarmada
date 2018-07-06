@@ -37,7 +37,8 @@ namespace MCarmada.Server
 
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
-            new CpeExtension(CpeExtension.LongerMessages, 1)
+            new CpeExtension(CpeExtension.LongerMessages, 1),
+            new CpeExtension(CpeExtension.CustomBlocks, 1), 
         };
 
         public Server(ushort port)
@@ -187,6 +188,32 @@ namespace MCarmada.Server
             }
 
             return num;
+        }
+
+        public void BroadcastBlockChange(int x, int y, int z, Block block)
+        {
+            Block fallback = block;
+            byte b = (byte) block;
+
+            if (b >= (byte) Block.CobblestoneSlab && b <= (byte) Block.StoneBricks)
+            {
+                fallback = BlockConfig.CpeFallbacks[block];
+            }
+
+            foreach (var player in players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                Packet packet = new Packet(PacketType.Header.ServerSetBlock);
+                packet.Write((short)x);
+                packet.Write((short)y);
+                packet.Write((short)z);
+                packet.Write((byte) (player.SupportsExtension(CpeExtension.CustomBlocks) ? block : fallback));
+                player.Send(packet);
+            }
         }
 
         private void UpdateConsoleTitle()

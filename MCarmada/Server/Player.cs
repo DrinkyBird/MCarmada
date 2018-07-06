@@ -39,6 +39,8 @@ namespace MCarmada.Server
 
         private string messageBuffer = String.Empty;
 
+        public int CpeBlockSupportLevel { get; private set; }
+
         public Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
@@ -76,6 +78,7 @@ namespace MCarmada.Server
             Send(new Packet(PacketType.Header.LevelInit));
 
             levelCompresser = new LevelCompresser(server.level);
+            levelCompresser.UseCpeFallbacks = !SupportsExtension(CpeExtension.CustomBlocks);
         }
 
         private void HandleLevelData()
@@ -83,7 +86,7 @@ namespace MCarmada.Server
             if (!compressed)
             {
                 int total = server.level.Blocks.Length;
-                int length = Math.Min(16 * 1024, total - dataOffset);
+                int length = Math.Min(32 * 1024, total - dataOffset);
 
                 byte[] array = new byte[length];
                 Array.Copy(server.level.Blocks, dataOffset, array, 0, array.Length);
@@ -217,6 +220,10 @@ namespace MCarmada.Server
                 update.Write((byte) Yaw);
                 update.Write((byte) Pitch);
                 server.BroadcastPacketExcept(update, this);
+            }
+            else if (packet.Type == PacketType.Header.CpeCustomBlockSupportLevel)
+            {
+                CpeBlockSupportLevel = packet.ReadByte();
             }
         }
 

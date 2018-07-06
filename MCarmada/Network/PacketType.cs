@@ -34,6 +34,9 @@ namespace MCarmada.Network
             // CPE negotiation
             CpeExtInfo = 0x10,
             CpeExtEntry = 0x11,
+
+            // CPE CustomBlocks
+            CpeCustomBlockSupportLevel = 0x13
         }
 
         private static Dictionary<Header, int> PacketSizes = new Dictionary<Header, int>();
@@ -65,6 +68,9 @@ namespace MCarmada.Network
             // CPE negotiation
             PacketSizes[Header.CpeExtInfo] = 66;
             PacketSizes[Header.CpeExtEntry] = 68;
+
+            // CPE CustomBlocks
+            PacketSizes[Header.CpeCustomBlockSupportLevel] = 1;
         }
 
         public static int GetPacketSize(Header packet)

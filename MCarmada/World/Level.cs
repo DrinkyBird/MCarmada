@@ -24,6 +24,7 @@ namespace MCarmada.World
         public Block[] Blocks;
         public Random Rng { get; private set; }
         public int Seed { get; private set; }
+        public bool Generated { get; private set; }
 
         private WorldGenerator generator;
 
@@ -65,6 +66,7 @@ namespace MCarmada.World
             double delta = end - start;
 
             logger.Info("Generated world in " + delta + " ms.");
+            Generated = true;
         }
 
         public bool IsValidBlock(int x, int y, int z)
@@ -86,12 +88,10 @@ namespace MCarmada.World
 
             Blocks[(y * Height + z) * Width + x] = block;
 
-            Packet packet = new Packet(PacketType.Header.ServerSetBlock);
-            packet.Write((short) x);
-            packet.Write((short) y);
-            packet.Write((short) z);
-            packet.Write(block);
-            server.BroadcastPacket(packet);
+            if (Generated)
+            {
+                server.BroadcastBlockChange(x, y, z, block);
+            }
 
             return true;
         }
@@ -115,7 +115,7 @@ namespace MCarmada.World
             int x = Rng.Next(xc - radius, xc + radius);
             int z = Rng.Next(zc - radius, zc + radius);
 
-            int y = 256;
+            int y = FindTopBlock(x, z) + 2;
 
             return new BlockPos(x, y, z);
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -25,6 +26,8 @@ namespace MCarmada.Network
 
         private string clientName;
         private Player player = null;
+
+        public bool SupportCustomBlocks = false;
 
         public string ClientSoftware { get; private set; }
 
@@ -184,8 +187,20 @@ namespace MCarmada.Network
 
                 clientSupportedExtensions.Add(new KeyValuePair<string, int>(name, version));
 
+                if (name == CpeExtension.CustomBlocks)
+                {
+                    SupportCustomBlocks = true;
+                }
+
                 if (clientSupportedExtensions.Count == clientSupportedExtensions.Capacity)
                 {
+                    if (SupportCustomBlocks)
+                    {
+                        Packet p = new Packet(PacketType.Header.CpeCustomBlockSupportLevel);
+                        p.Write((byte) 1);
+                        Send(p);
+                    }
+
                     BeginIdent();
                 }
             }

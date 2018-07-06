@@ -23,6 +23,7 @@ namespace MCarmada.Network
 
         public int Position { get; private set; }
         public int Length { get; private set; }
+        public bool UseCpeFallbacks = false;
 
         public LevelCompresser(Level level)
         {
@@ -35,6 +36,17 @@ namespace MCarmada.Network
 
         public void AddChunk(byte[] chunk)
         {
+            for (int i = 0; i < chunk.Length; i++)
+            {
+                Block block = (Block) chunk[i];
+                byte b = chunk[i];
+
+                if (b >= (byte) Block.CobblestoneSlab && b <= (byte) Block.StoneBricks && UseCpeFallbacks)
+                {
+                    chunk[i] = (byte) BlockConfig.CpeFallbacks[block];
+                }
+            }
+
             writer.Write(chunk);
         }
 
