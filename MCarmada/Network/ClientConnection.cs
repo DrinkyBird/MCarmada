@@ -147,7 +147,7 @@ namespace MCarmada.Network
                     return;
                 }
 
-                if (clientName != "csnxs" && clientName != "Tribeam")
+                if (Program.Instance.Settings.Whitelist && !server.Whitelist.Contains(clientName))
                 {
                     Disconnect("You are not on the whitelist!");
                     return;
@@ -218,10 +218,11 @@ namespace MCarmada.Network
             ident.Write((byte) 0x07);
             ident.Write(server.ServerName);
             ident.Write(server.MessageOfTheDay);
-            ident.Write((byte) 0x64);
+            ident.Write((byte) (server.OpList.Contains(clientName) ? 0x64 : 0x00));
             Send(ident);
 
             player = server.CreatePlayer(this, clientName);
+            player.IsOp = server.OpList.Contains(clientName);
             player.SendLevel();
         }
 

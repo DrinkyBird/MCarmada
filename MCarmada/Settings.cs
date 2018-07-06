@@ -17,6 +17,7 @@ namespace MCarmada
         public bool VerifyNames { get; set; }
         public int MaxPlayers { get; set; }
         public bool Broadcast { get; set; }
+        public bool Whitelist { get; set; }
 
         public struct WorldSettings
         {

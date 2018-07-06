@@ -1,10 +1,11 @@
 port: 25565
 server_name: "MCarmada Test"
 server_motd: "Test MotD"
-public: false
+public: true
 verify_names: false
 max_players: 32
-broadcast: false
+broadcast: true
+whitelist: true
 world:
     width: 128
     depth: 128

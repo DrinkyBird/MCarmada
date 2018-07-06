@@ -41,7 +41,7 @@ namespace MCarmada.Server
 
         public int CpeBlockSupportLevel { get; private set; }
 
-        public bool IsOp = false;
+        public bool IsOp = true;
 
         public Player(Server server, ClientConnection connection, string name, int id)
         {

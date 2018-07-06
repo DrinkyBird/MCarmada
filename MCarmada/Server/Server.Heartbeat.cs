@@ -43,10 +43,12 @@ namespace MCarmada.Server
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
-                html = reader.ReadToEnd();
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    html = reader.ReadToEnd();
+                    logger.Error("Failed to heartbeat: " + html);
+                }
             }
-
-            Console.WriteLine(html);
         }
     }
 }

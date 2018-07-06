@@ -35,6 +35,9 @@ namespace MCarmada.Server
         private Logger logger = LogUtils.GetClassLogger();
         private string Salt;
 
+        public NameList OpList { get; private set; }
+        public NameList Whitelist { get; private set; }
+
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
             new CpeExtension(CpeExtension.LongerMessages, 1),
@@ -51,6 +54,9 @@ namespace MCarmada.Server
             players = new Player[Program.Instance.Settings.MaxPlayers];
             listener = new Listener(this, port);
             level = new Level(this, settings.World, (short)settings.World.Width, (short)settings.World.Depth, (short)settings.World.Height);
+
+            OpList = new NameList("operators.txt");
+            Whitelist = new NameList("whitelist.txt");
         }
 
         public void Tick()
