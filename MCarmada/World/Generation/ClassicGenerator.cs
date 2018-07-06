@@ -116,7 +116,7 @@ namespace MCarmada.World.Generation
 
                     if (y == 0) block = Block.Lava;
                     else if (y <= stoneTransition) block = Block.Stone;
-                    else if (y <= dirtTransition) block = Block.Grass;
+                    else if (y <= dirtTransition) block = Block.Dirt;
 
                     level.SetBlock(x, y, z, block);
                 }
