@@ -86,7 +86,7 @@ namespace MCarmada.Server
 
             if (delta >= 1000.0 / 20.0)
             {
-                logger.Warn("Tick " + (CurrentTick - 1) + " took too long: Expected <= " + (delta - (1000.0 / 20.0)) + " ms, but it took " + delta + " ms!");
+                logger.Warn("Tick " + (CurrentTick - 1) + " took too long: Expected <= " + (1000.0 / 20.0) + " ms, but it took " + delta + " ms!");
             }
         }
 
