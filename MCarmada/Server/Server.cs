@@ -55,6 +55,8 @@ namespace MCarmada.Server
 
         public void Tick()
         {
+            double start = TimeUtil.GetTimeInMs();
+
             listener.AcceptNewConnections();
 
             for (int i = 0; i < listener.Connections.Count; i++)
@@ -78,6 +80,14 @@ namespace MCarmada.Server
             level.Tick();
 
             CurrentTick++;
+
+            double end = TimeUtil.GetTimeInMs();
+            double delta = end - start;
+
+            if (delta >= 1000.0 / 20.0)
+            {
+                logger.Warn("Tick " + (CurrentTick - 1) + " took too long: Expected <= " + (delta - (1000.0 / 20.0)) + " ms, but it took " + delta + " ms!");
+            }
         }
 
         public Player CreatePlayer(ClientConnection connection, string name)
