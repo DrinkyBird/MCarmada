@@ -15,7 +15,7 @@ namespace MCarmada.Network
 {
     class ClientConnection
     {
-        private static readonly int MAX_OUT_BUF_SIZE = 16 * 1024 * 1024;
+        private static readonly int MAX_OUT_BUF_SIZE = 1 * 1024 * 1024;
 
         private Server.Server server;
         private Socket socket;
