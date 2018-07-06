@@ -41,6 +41,8 @@ namespace MCarmada.Server
 
         public int CpeBlockSupportLevel { get; private set; }
 
+        public bool IsOp;
+
         public Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
@@ -144,6 +146,22 @@ namespace MCarmada.Server
                 int z = packet.ReadShort();
                 bool destroyed = packet.ReadByte() == 0;
                 Block newBlock = destroyed ? Block.Air : (Block) packet.ReadByte();
+                Block oldBlock = level.GetBlock(x, y, z);
+
+                if ((newBlock == Block.Water || newBlock == Block.WaterStill || newBlock == Block.Lava ||
+                     newBlock == Block.LavaStill || newBlock == Block.Bedrock) && !IsOp)
+                {
+                    logger.Warn("Client tried to set illegal block " + newBlock + " at [" + x + ", " + y + ", z]" );
+                    Packet correction = new Packet(PacketType.Header.ServerSetBlock);
+                    correction.Write((short) x);
+                    correction.Write((short) y);
+                    correction.Write((short) z);
+                    correction.Write(oldBlock);
+                    Send(correction);
+
+                    SendMessage("&cIllegal block: &f" + newBlock);
+                    return;
+                }
 
                 level.SetBlock(x, y, z, newBlock);
             }
@@ -275,6 +293,14 @@ namespace MCarmada.Server
         public void Send(Packet packet)
         {
             connection.Send(packet);
+        }
+
+        public void SendMessage(string message)
+        {
+            Packet msg = new Packet(PacketType.Header.Message);
+            msg.Write((byte) 0);
+            msg.Write(message);
+            Send(msg);
         }
 
         public void Despawn()
