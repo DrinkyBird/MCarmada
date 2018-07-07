@@ -7,6 +7,7 @@ max_players: 32
 broadcast: true
 whitelist: true
 world:
+    name: world
     width: 128
     depth: 128
     height: 128

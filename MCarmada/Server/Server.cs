@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using MCarmada.Api;
@@ -53,10 +54,48 @@ namespace MCarmada.Server
 
             players = new Player[Program.Instance.Settings.MaxPlayers];
             listener = new Listener(this, port);
-            level = new Level(this, settings.World, (short)settings.World.Width, (short)settings.World.Depth, (short)settings.World.Height);
+
+            if (!AttemptLoadLevel())
+            {
+                level = new Level(this, settings.World, (short)settings.World.Width, (short)settings.World.Depth, (short)settings.World.Height);
+                SaveLevel();
+            }
 
             OpList = new NameList("operators.txt");
             Whitelist = new NameList("whitelist.txt");
+        }
+
+        private bool AttemptLoadLevel()
+        {
+            Settings settings = Program.Instance.Settings;
+            Settings.WorldSettings worldSettings = settings.World;
+
+            string path = Path.GetFullPath("worlds/" + worldSettings.Name);
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    level = Level.Load(this, worldSettings, path);
+
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    logger.Error("Failed to load world: " + e);
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        public void SaveLevel()
+        {
+            Settings settings = Program.Instance.Settings;
+            Settings.WorldSettings worldSettings = settings.World;
+
+            string path = Path.GetFullPath("worlds/" + worldSettings.Name);
+            level.Save(path);
         }
 
         public void Tick()
@@ -110,8 +149,6 @@ namespace MCarmada.Server
 
             players[id] = player;
 
-            level.Save("worlds");
-
             return player;
         }
 
@@ -151,6 +188,11 @@ namespace MCarmada.Server
             player.Despawn();
 
             players[player.ID] = null;
+
+            if (GetOnlinePlayers() == 0)
+            {
+                SaveLevel();
+            }
         }
 
         public void BroadcastMessage(sbyte id, string message)
@@ -250,6 +292,8 @@ namespace MCarmada.Server
 
                 player.Disconnect("Server shutting down");
             }
+            
+            SaveLevel();
 
             listener.Dispose();
         }

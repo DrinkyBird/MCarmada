@@ -30,7 +30,7 @@ namespace MCarmada.World
         private WorldGenerator generator;
 
         private Server.Server server;
-        private Logger logger = LogUtils.GetClassLogger();
+        private static Logger logger = LogUtils.GetClassLogger();
 
         private Settings.WorldSettings settings;
 
@@ -49,6 +49,22 @@ namespace MCarmada.World
             generator = WorldGenerator.Generators[settings.Generator];
 
             Init();
+        }
+
+        private Level(Server.Server server, Settings.WorldSettings settings, short w, short d, short h, Block[] blocks, int seed, string generator)
+        {
+            this.settings = settings;
+            this.server = server;
+            Width = w;
+            Depth = d;
+            Height = h;
+            Blocks = blocks;
+            Seed = seed;
+
+            Generated = true;
+
+            Rng = new Random(Seed);
+            this.generator = WorldGenerator.Generators[generator];
         }
 
         private void Init()
@@ -140,6 +156,7 @@ namespace MCarmada.World
 
         public void Save(string outDir)
         {
+            logger.Info("Saving world to " + outDir);
             Directory.CreateDirectory(outDir);
 
             string metadataFile = Path.Combine(outDir, "world.mcarmada");
@@ -163,6 +180,7 @@ namespace MCarmada.World
             writer.Write(Height);
             writer.Write(Seed);
             writer.Write(generator.GetType().FullName);
+            writer.Write(WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key);
 
             writer.Dispose();
             stream.Dispose();
@@ -181,6 +199,83 @@ namespace MCarmada.World
             writer.Dispose();
             gzip.Dispose();
             stream.Dispose();
+        }
+
+        public static Level Load(Server.Server server, Settings.WorldSettings settings, string dir)
+        {
+            logger.Info("Loading world from " + dir + "...");
+
+            string metadataFile = Path.Combine(dir, "world.mcarmada");
+            string blocksFile = Path.Combine(dir, "blocks.mcarmada");
+
+            FileStream stream;
+            GZipStream gzip;
+            BinaryReader reader;
+
+            stream = new FileStream(metadataFile, FileMode.Open);
+            reader = new BinaryReader(stream);
+
+            char a = reader.ReadChar();
+            char b = reader.ReadChar();
+            char c = reader.ReadChar();
+            char d = reader.ReadChar();
+
+            if (a != 'M' || b != 'C' || c != 'a' || d != 'W')
+            {
+                throw new InvalidDataException("File header does not match");
+            }
+
+            int version = reader.ReadInt32();
+            if (version != LEVEL_VERSION)
+            {
+                throw new InvalidDataException("File version is unsupported");
+            }
+
+            short width = reader.ReadInt16();
+            short depth = reader.ReadInt16();
+            short height = reader.ReadInt16();
+            int seed = reader.ReadInt32();
+            string generatorClass = reader.ReadString();
+            string generatorName = reader.ReadString();
+
+            reader.Dispose();
+            stream.Dispose();
+
+            stream = new FileStream(blocksFile, FileMode.Open);
+            gzip = new GZipStream(stream, CompressionMode.Decompress);
+            reader = new BinaryReader(gzip);
+
+            int bversion = reader.ReadInt32();
+            if (bversion != LEVEL_VERSION)
+            {
+                throw new InvalidDataException("Blocks f version is unsupported");
+            }
+
+            int length = reader.ReadInt32();
+            ulong hash = reader.ReadUInt64();
+
+            byte[] bytes = new byte[length];
+            Block[] blocks = new Block[length];
+            for (int i = 0; i < length; i++)
+            {
+                byte byt = reader.ReadByte();
+                bytes[i] = byt;
+                blocks[i] = (Block) byt;
+            }
+
+            if (XXHash.XXH64(bytes) != hash)
+            {
+                throw new InvalidDataException("Blocks hash does not match");
+            }
+
+            reader.Dispose();
+            gzip.Dispose();
+            stream.Dispose();
+
+            Level level = new Level(server, settings, width, depth, height, blocks, seed, generatorName);
+            logger.Info("World loaded!");
+
+            return level;
         }
 
         public byte[] BlocksAsByteArray()
