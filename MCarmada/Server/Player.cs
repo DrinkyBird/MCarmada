@@ -297,6 +297,20 @@ namespace MCarmada.Server
 
         public void SendMessage(string message)
         {
+            if (!SupportsExtension(CpeExtension.FullCp437))
+            {
+                char[] arr = message.ToCharArray();
+                for (var i = 0; i < arr.Length; i++)
+                {
+                    char c = arr[i];
+                    if (c > 127)
+                    {
+                        arr[i] = '?';
+                    }
+                }
+                message = new string(arr);
+            }
+
             Packet msg = new Packet(PacketType.Header.Message);
             msg.Write((byte) 0);
             msg.Write(message);
@@ -319,7 +333,7 @@ namespace MCarmada.Server
         {
             foreach (var extension in extensions)
             {
-                if (extension.Name == name && extension.Version == version)
+                if (String.Equals(extension.Name, name, StringComparison.CurrentCultureIgnoreCase) && extension.Version == version)
                 {
                     return true;
                 }

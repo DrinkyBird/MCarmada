@@ -43,6 +43,7 @@ namespace MCarmada.Server
         {
             new CpeExtension(CpeExtension.LongerMessages, 1),
             new CpeExtension(CpeExtension.CustomBlocks, 1), 
+            new CpeExtension(CpeExtension.FullCp437, 1), 
         };
 
         public Server(ushort port)
@@ -198,11 +199,16 @@ namespace MCarmada.Server
         public void BroadcastMessage(sbyte id, string message)
         {
             logger.Info(message);
-            Packet msg = new Packet(PacketType.Header.Message);
-            msg.Write(id);
-            msg.Write(message);
 
-            BroadcastPacket(msg);
+            foreach (var player in players)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                player.SendMessage(message);
+            }
         }
 
         public void BroadcastMessage(string message)
