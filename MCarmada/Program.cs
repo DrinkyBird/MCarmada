@@ -49,9 +49,12 @@ namespace MCarmada
 
         private bool Initialise()
         {
-            AppDomain.CurrentDomain.ProcessExit += Shutdown; 
-            _consoleHandler = new ConsoleCtrlHandlerDelegate(ConsoleEventHandler);
-            SetConsoleCtrlHandler(_consoleHandler, true);
+            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                AppDomain.CurrentDomain.ProcessExit += Shutdown;
+                _consoleHandler = new ConsoleCtrlHandlerDelegate(ConsoleEventHandler);
+                SetConsoleCtrlHandler(_consoleHandler, true);
+            }
 
             Settings = Settings.Load();
             server = new Server.Server(Settings.Port);
