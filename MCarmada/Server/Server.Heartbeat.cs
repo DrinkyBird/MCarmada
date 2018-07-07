@@ -39,15 +39,23 @@ namespace MCarmada.Server
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
 
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            try
             {
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
                 {
-                    html = reader.ReadToEnd();
-                    logger.Error("Failed to heartbeat: " + html);
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        html = reader.ReadToEnd();
+                        logger.Error("Failed to heartbeat: " + html);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                logger.Error("Failed to heartbeat: " + e);
+                logger.Error("Will retry in 45 seconds.");
             }
         }
     }
