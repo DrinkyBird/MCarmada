@@ -13,7 +13,7 @@ namespace MCarmada.Server
 
         public NameList(string fileName)
         {
-            filePath = Path.GetFullPath(Path.Combine("settings/", fileName));
+            filePath = Path.GetFullPath(Path.Combine("Settings/", fileName));
 
             if (File.Exists(filePath))
             {
