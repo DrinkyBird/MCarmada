@@ -76,6 +76,7 @@ namespace MCarmada
 
         private void Shutdown(object sender, EventArgs e)
         {
+            running = false;
             logger.Info("Shutting down.....");
 
             if (server != null)
