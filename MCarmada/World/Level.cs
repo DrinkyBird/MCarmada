@@ -34,6 +34,8 @@ namespace MCarmada.World
 
         private Settings.WorldSettings settings;
 
+        public ulong LevelTick { get; private set; }
+
         public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
             this.settings = settings;
@@ -51,7 +53,7 @@ namespace MCarmada.World
             Init();
         }
 
-        private Level(Server.Server server, Settings.WorldSettings settings, short w, short d, short h, Block[] blocks, int seed, string generator)
+        private Level(Server.Server server, Settings.WorldSettings settings, short w, short d, short h, Block[] blocks, int seed, string generator, ulong tick, List<ScheduledTick> ticks)
         {
             this.settings = settings;
             this.server = server;
@@ -60,6 +62,8 @@ namespace MCarmada.World
             Height = h;
             Blocks = blocks;
             Seed = seed;
+            LevelTick = tick;
+            scheduledTicks = ticks;
 
             Generated = true;
 
@@ -161,6 +165,7 @@ namespace MCarmada.World
 
             string metadataFile = Path.Combine(outDir, "world.mcarmada");
             string blocksFile = Path.Combine(outDir, "blocks.mcarmada");
+            string ticksFile = Path.Combine(outDir, "ticks.mcarmada");
 
             byte[] blocks = BlocksAsByteArray();
 
@@ -181,6 +186,8 @@ namespace MCarmada.World
             writer.Write(Seed);
             writer.Write(generator.GetType().FullName);
             writer.Write(WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key);
+            writer.Write(LevelTick);
+            writer.Write(scheduledTicks.Count);
 
             writer.Dispose();
             stream.Dispose();
@@ -199,6 +206,21 @@ namespace MCarmada.World
             writer.Dispose();
             gzip.Dispose();
             stream.Dispose();
+
+            // 3. write ticks
+
+            stream = new FileStream(ticksFile, FileMode.Create);
+            writer = new BinaryWriter(stream);
+
+            writer.Write(LEVEL_VERSION);
+
+            foreach (var tick in scheduledTicks)
+            {
+                tick.Write(writer);
+            }
+
+            writer.Dispose();
+            stream.Dispose();
         }
 
         public static Level Load(Server.Server server, Settings.WorldSettings settings, string dir)
@@ -207,6 +229,7 @@ namespace MCarmada.World
 
             string metadataFile = Path.Combine(dir, "world.mcarmada");
             string blocksFile = Path.Combine(dir, "blocks.mcarmada");
+            string ticksFile = Path.Combine(dir, "ticks.mcarmada");
 
             FileStream stream;
             GZipStream gzip;
@@ -237,6 +260,8 @@ namespace MCarmada.World
             int seed = reader.ReadInt32();
             string generatorClass = reader.ReadString();
             string generatorName = reader.ReadString();
+            ulong tick = reader.ReadUInt64();
+            int numTicks = reader.ReadInt32();
 
             reader.Dispose();
             stream.Dispose();
@@ -272,7 +297,26 @@ namespace MCarmada.World
             gzip.Dispose();
             stream.Dispose();
 
-            Level level = new Level(server, settings, width, depth, height, blocks, seed, generatorName);
+            stream = new FileStream(ticksFile, FileMode.Open);
+            reader = new BinaryReader(stream);
+
+            version = reader.ReadInt32();
+
+            if (version != LEVEL_VERSION)
+            {
+                throw new InvalidDataException("Blocks f version is unsupported");
+            }
+
+            List<ScheduledTick> ticks = new List<ScheduledTick>();
+            for (int i = 0; i < numTicks; i++)
+            {
+                ticks.Add(ScheduledTick.Read(reader));
+            }
+
+            reader.Dispose();
+            stream.Dispose();
+
+            Level level = new Level(server, settings, width, depth, height, blocks, seed, generatorName, tick, ticks);
             logger.Info("World loaded!");
 
             return level;

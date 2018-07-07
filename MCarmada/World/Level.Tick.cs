@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using YamlDotNet.Serialization;
@@ -8,8 +9,8 @@ namespace MCarmada.World
 {
     partial class Level
     {
-        private static readonly int WATER_TICK_DELAY = 4;
-        private static readonly int LAVA_TICK_DELAY = 10;
+        private static readonly ulong WATER_TICK_DELAY = 4;
+        private static readonly ulong LAVA_TICK_DELAY = 10;
 
         public enum TickEvent
         {
@@ -27,11 +28,35 @@ namespace MCarmada.World
 
         public struct ScheduledTick
         {
-            public long Tick;
+            public ulong Tick;
             public int X, Y, Z;
             public TickEvent Event;
             public TickTiming Timing;
-            public long TimeAdded;
+            public ulong TimeAdded;
+
+            public void Write(BinaryWriter writer)
+            {
+                writer.Write(Tick);
+                writer.Write(X);
+                writer.Write(Y);
+                writer.Write(Z);
+                writer.Write((byte) Event);
+                writer.Write((byte) Timing);
+                writer.Write(TimeAdded);
+            }
+
+            public static ScheduledTick Read(BinaryReader reader)
+            {
+                ScheduledTick t = new ScheduledTick();
+                t.Tick = reader.ReadUInt64();
+                t.X = reader.ReadInt32();
+                t.Y = reader.ReadInt32();
+                t.Z = reader.ReadInt32();
+                t.Event = (TickEvent) reader.ReadByte();
+                t.Timing = (TickTiming) reader.ReadByte();
+                t.TimeAdded = reader.ReadUInt64();
+                return t;
+            }
         }
 
         private List<ScheduledTick> scheduledTicks = new List<ScheduledTick>();
@@ -43,18 +68,20 @@ namespace MCarmada.World
                 ScheduledTick tick = scheduledTicks[i];
 
                 bool doTick = false;
-                if (tick.Timing == TickTiming.Absolute) doTick = (server.CurrentTick >= tick.Tick);
-                else if (tick.Timing == TickTiming.Modulus) doTick = (server.CurrentTick % tick.Tick == 0);
+                if (tick.Timing == TickTiming.Absolute) doTick = (LevelTick >= tick.Tick);
+                else if (tick.Timing == TickTiming.Modulus) doTick = (LevelTick % tick.Tick == 0 && LevelTick > tick.TimeAdded);
 
-                if (doTick && server.CurrentTick > tick.TimeAdded)
+                if (doTick)
                 {
                     PerformScheduledTick(tick);
                     scheduledTicks.RemoveAt(i);
                 }
             }
+
+            LevelTick++;
         }
 
-        private void AddScheduledTick(int x, int y, int z, int when, TickEvent tickEvent, TickTiming timing = TickTiming.Absolute)
+        private void AddScheduledTick(int x, int y, int z, ulong when, TickEvent tickEvent, TickTiming timing = TickTiming.Absolute)
         {
             foreach (var scheduledTick in scheduledTicks)
             {
@@ -64,7 +91,7 @@ namespace MCarmada.World
                 }
             }
 
-            long time = when;
+            ulong time = when;
             if (timing == TickTiming.Absolute)
             {
                 time += server.CurrentTick;
@@ -93,7 +120,7 @@ namespace MCarmada.World
 
             if (block == Block.Sapling && settings.GrowTrees)
             {
-                AddScheduledTick(x, y, z, Rng.Next(60 * 20, 180 * 20), TickEvent.GrowTree);
+                AddScheduledTick(x, y, z, (ulong) Rng.Next(60 * 20, 180 * 20), TickEvent.GrowTree);
             }
 
             if ((north == Block.Water || east == Block.Water || south == Block.Water || west == Block.Water ||
@@ -159,7 +186,7 @@ namespace MCarmada.World
                 }
                 else
                 {
-                    AddScheduledTick(x, y, z, Rng.Next(60 * 20, 180 * 20), TickEvent.GrowTree);
+                    AddScheduledTick(x, y, z, (ulong) Rng.Next(60 * 20, 180 * 20), TickEvent.GrowTree);
                 }
             }
 
