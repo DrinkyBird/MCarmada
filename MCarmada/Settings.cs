@@ -30,6 +30,8 @@ namespace MCarmada
             public bool LavaFlow { get; set; }
             public bool GrowTrees { get; set; }
             public bool BlockFall { get; set; }
+            public bool EnableSave { get; set; }
+            public int Seed { get; set; }
         }
 
         public WorldSettings World { get; set; }

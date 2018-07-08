@@ -15,6 +15,7 @@ namespace MCarmada.World.Generation
             Generators["flat"] = new FlatGenerator();
             Generators["debug"] = new DebugGenerator();
             Generators["armadacraft"] = new ArmadaCraftGenerator();
+            Generators["test"] = new TestGenerator();
         }
 
         public abstract void Generate(Level level);

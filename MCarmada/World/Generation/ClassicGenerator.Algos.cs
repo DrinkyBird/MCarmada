@@ -70,7 +70,7 @@ namespace MCarmada.World.Generation
 	        }
 	    }
 
-	    private sealed class FastIntStack
+	    public sealed class FastIntStack
 	    {
 	        public int[] Values;
 	        public int Size;

@@ -71,6 +71,11 @@ namespace MCarmada.Server
             Settings settings = Program.Instance.Settings;
             Settings.WorldSettings worldSettings = settings.World;
 
+            if (!worldSettings.EnableSave)
+            {
+                return false;
+            }
+
             string path = Path.GetFullPath("worlds/" + worldSettings.Name);
             if (Directory.Exists(path))
             {

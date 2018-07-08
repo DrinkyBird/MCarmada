@@ -7,12 +7,14 @@ max_players: 32
 broadcast: true
 whitelist: true
 world:
-    name: world
+    name: test
     width: 128
     depth: 128
     height: 128
-    generator: classic
+    generator: test
     water_flow: true
     lava_flow: true
     grow_trees: true
     block_fall: true
+    enable_save: false
+    seed: 1155585812

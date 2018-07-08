@@ -150,7 +150,7 @@ namespace MCarmada.World
                 AddScheduledTick(x, y, z, 1, TickEvent.BlockFall);
             }
 
-            if (CanBlockFall(above))
+            if (CanBlockFall(above) && Generated)
             {
                 AddScheduledTick(x, y + 1, z, 1, TickEvent.BlockFall);
             }

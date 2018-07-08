@@ -38,7 +38,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -99,6 +99,7 @@
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplex.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplexNoise.cs" />
+    <Compile Include="World\Generation\TestGenerator.cs" />
     <Compile Include="World\Generation\WorldGenerator.cs" />
     <Compile Include="World\Level.Algos.cs" />
     <Compile Include="World\Level.cs" />
@@ -108,7 +109,6 @@
     <None Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
     <Compile Include="World\Generation\ClassicGenerator.Algos.cs" />
     <Compile Include="Server\Server.Auth.cs" />
     <None Include="Settings\settings.yml">

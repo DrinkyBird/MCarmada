@@ -44,7 +44,8 @@ namespace MCarmada.World
             Depth = d;
             Height = h;
 
-            Seed = (int) DateTime.Now.Ticks;
+            Seed = settings.Seed;
+            if (Seed == 0) Seed = (int)DateTime.Now.Ticks;
             logger.Info("Creating world with seed " + Seed + "...");
             Rng = new Random(Seed);
 
@@ -79,6 +80,7 @@ namespace MCarmada.World
                 Blocks[i] = (byte) 0;
             }
 
+            Generated = false;
             Generate();
         }
 
@@ -160,6 +162,11 @@ namespace MCarmada.World
 
         public void Save(string outDir)
         {
+            if (!settings.EnableSave)
+            {
+                return;
+            }
+
             logger.Info("Saving world to " + outDir);
             Directory.CreateDirectory(outDir);
 

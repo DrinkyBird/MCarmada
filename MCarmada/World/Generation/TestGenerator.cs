@@ -1,67 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using MCarmada.Utils;
 using MCarmada.World.Generation.Noise;
-using NLog;
 
 namespace MCarmada.World.Generation
 {
-    partial class ClassicGenerator : WorldGenerator
+    class TestGenerator : WorldGenerator
     {
-        private Level level;
-        private Logger logger = LogUtils.GetClassLogger();
-
         private int[] heightMap;
+        private Level level;
 
         public override void Generate(Level level)
         {
             this.level = level;
-
-            GenerateHeightmap();
-            GenerateStrata();
-            GenerateCaves();
-
-            GenerateOres(Block.GoldOre, 0.5); // Gold
-            GenerateOres(Block.IronOre, 0.7); // Iron
-            GenerateOres(Block.CoalOre, 0.9); // Coal
-
-            GenerateWater();
-            GenerateLava();
-            GenerateSurface();
-            GeneratePlants();
-        }
-
-        private void GenerateHeightmap()
-        {
-            logger.Info("Raising...");
+            int width = level.Width;
+            int depth = level.Depth;
+            int height = level.Height;
 
             heightMap = new int[level.Width * level.Height];
-
             int waterLevel = level.Depth / 2;
 
             CombinedNoise noise1 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
             CombinedNoise noise2 = new CombinedNoise(new OctaveNoise(8, level.Rng), new OctaveNoise(8, level.Rng));
-            OctaveNoise noise3 = new OctaveNoise(6, level.Rng);
-
-            int lastPercent = -1;
-            int generated = 0;
+            OctaveNoise noise3 = new OctaveNoise(8, level.Rng);
 
             for (int x = 0; x < level.Width; x++)
             for (int z = 0; z < level.Height; z++)
             {
-                double pc2 = (double)(level.Width * level.Height);
-                int percent = (int)(((double) generated / pc2) * 100.0);
-
-                if (percent != lastPercent)
-                {
-                    lastPercent = percent;
-
-                    logger.Info("Raising... " + percent + "%");
-                }
-
                 double heightLow = noise1.Compute(x * 1.3, z * 1.3) / 6 - 4;
                 double heightHigh = noise2.Compute(x * 1.3, z * 1.3) / 5 + 6;
                 double heightResult;
@@ -77,36 +41,131 @@ namespace MCarmada.World.Generation
 
                 heightResult /= 2;
 
-                heightMap[x + z * level.Width] = (int) (heightResult + waterLevel);
+                int hmVal = (int) (heightResult + waterLevel);
+                heightMap[x + z * width] = hmVal;
+                for (int y = 0; y < hmVal; y++)
+                {
+                    Block b = Block.Air;
 
-                generated++;
+                    if (y == hmVal - 1) b = Block.Grass;
+                    else b = Block.Dirt;
+                    level.SetBlock(x, y, z, b);
+                }
             }
-            logger.Info("Raised...");
-        }
 
-        private void GenerateStrata()
-        {
-            logger.Info("Soiling...");
+            GenerateStrata();
+            GenerateWater();
+            GenerateLava();
+            GenerateSurface();
 
-            OctaveNoise noise = new OctaveNoise(8, level.Rng);
-
-            int lastPercent = -1;
-            int generated = 0;
+            OpenSimplex noise4 = new OpenSimplex((int) (level.Depth * 0.8), 1.0, 2.0, 16, level.Seed);
+            OpenSimplex noise5 = new OpenSimplex((int)(level.Depth * 0.8), 1.0, 3.0, 16, level.Seed);
 
             for (int x = 0; x < level.Width; x++)
             for (int z = 0; z < level.Height; z++)
             {
-                double pc2 = (double)(level.Width * level.Height);
-                int percent = (int)(((double)generated / pc2) * 100.0);
-
-                if (percent != lastPercent)
+                for (int y = depth; y > heightMap[x + z * width] - 1; y--)
                 {
-                    lastPercent = percent;
+                    double val1 = noise4.noise(x, y, z);
+                    double val2 = noise5.noise(x, y, z);
 
-                    logger.Info("Soiling... " + percent + "%");
+                    double val = Math.Max(val1, val2);
+
+                    if (val > 0.85 && heightMap[x + z * width] > waterLevel)
+                    {
+                        level.SetBlock(x, y, z, Block.PinkWool);
+                    }
+                }
+            }
+
+            Grassify();
+            GenerateCaves();
+
+            GenerateOres(Block.GoldOre, 0.5);
+            GenerateOres(Block.IronOre, 0.7);
+            GenerateOres(Block.CoalOre, 0.9);
+            GenerateOres(Block.Dirt, 2.0);
+            GenerateOres(Block.Gravel, 1.5);
+
+            GeneratePlants();
+        }
+
+        private void Grassify()
+        {
+            int width = level.Width;
+            int depth = level.Depth;
+            int height = level.Height;
+
+            for (int x = 0; x < level.Width; x++)
+            for (int z = 0; z < level.Height; z++)
+            {
+                var list = new List<Tuple<int, int>>();
+
+                int begin = -1;
+                int end = -1;
+
+                for (int y = depth; y > heightMap[x + z * width]; y--)
+                {
+                    Block block = level.GetBlock(x, y, z);
+                    if (block == Block.PinkWool && begin == -1)
+                    {
+                        begin = y;
+                    } 
+                    else if (block == Block.Air && end == -1)
+                    {
+                        end = y;
+                        list.Add(new Tuple<int, int>(begin, end));
+                        begin = -1;
+                        end = -1;
+
+                    }
+                    else if (y == heightMap[x + z * width] + 1 && end == -1)
+                    {
+                        end = heightMap[x + z * width];
+                        list.Add(new Tuple<int, int>(begin, 0));
+                        begin = -1;
+                        end = -1;
+                    }
                 }
 
-                int dirtThickness = (int) noise.Compute(x, z) / 24 - 4;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    Tuple<int, int> pair = list[i];
+                    begin = pair.Item1;
+                    end = pair.Item2;
+
+                    for (int y = begin; y > end; y--)
+                    {
+                        Block b = Block.Air;
+                        if (y == begin)
+                        {
+                            b = Block.Grass;
+                        } 
+                        else if (y >= begin - 3)
+                        {
+                            b = Block.Dirt;
+                        } 
+                        else
+                        {
+                            b = Block.Stone;
+                        }
+
+                        level.SetBlock(x, y, z, b);
+                    }
+                }
+            }
+        }
+
+
+
+        private void GenerateStrata()
+        {
+            OctaveNoise noise = new OctaveNoise(8, level.Rng);
+
+            for (int x = 0; x < level.Width; x++)
+            for (int z = 0; z < level.Height; z++)
+            {
+                int dirtThickness = (int)noise.Compute(x, z) / 24 - 4;
                 int dirtTransition = heightMap[x + z * level.Width];
                 int stoneTransition = dirtTransition + dirtThickness;
 
@@ -120,8 +179,6 @@ namespace MCarmada.World.Generation
 
                     level.SetBlock(x, y, z, block);
                 }
-
-                generated++;
             }
         }
 
@@ -129,24 +186,13 @@ namespace MCarmada.World.Generation
         {
             int numCaves = (level.Width * level.Depth * level.Height) / 8192;
 
-            int lastPercent = -1;
-
-            logger.Info("Carving... (" + numCaves + " caves)");
-
             for (int i = 0; i < numCaves; i++)
             {
-                int percent = (int) (((double) i / numCaves) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Carving... " + percent + "%");
-                    lastPercent = percent;
-                }
-
                 double caveX = level.Rng.Next(0, level.Width);
                 double caveY = level.Rng.Next(0, level.Depth);
                 double caveZ = level.Rng.Next(0, level.Height);
 
-                int caveLength = (int) (level.Rng.NextDouble() * level.Rng.NextDouble() * 200);
+                int caveLength = (int)(level.Rng.NextDouble() * level.Rng.NextDouble() * 200);
 
                 double theta = level.Rng.NextDouble() * Math.PI * 2;
                 double deltaTheta = 0;
@@ -169,11 +215,11 @@ namespace MCarmada.World.Generation
 
                     if (level.Rng.NextDouble() >= 0.25)
                     {
-                        int centreX = (int) (caveX + (level.Rng.Next(4) - 2) * 0.2);
-                        int centreY = (int) (caveY + (level.Rng.Next(4) - 2) * 0.2);
-                        int centreZ = (int) (caveZ + (level.Rng.Next(4) - 2) * 0.2);
+                        int centreX = (int)(caveX + (level.Rng.Next(4) - 2) * 0.2);
+                        int centreY = (int)(caveY + (level.Rng.Next(4) - 2) * 0.2);
+                        int centreZ = (int)(caveZ + (level.Rng.Next(4) - 2) * 0.2);
 
-                        double radius = (level.Height - centreY) / (double) level.Height;
+                        double radius = (level.Height - centreY) / (double)level.Height;
                         radius = 1.2 + (radius * 3.5 + 1) * caveRadius;
                         radius = radius * Math.Sin(len * Math.PI / caveLength);
 
@@ -185,7 +231,7 @@ namespace MCarmada.World.Generation
 
         private void GenerateOres(Block block, double abundance)
         {
-            int numVeins = (int) ((level.Width * level.Height * level.Depth * abundance) / 16384);
+            int numVeins = (int)((level.Width * level.Height * level.Depth * abundance) / 16384);
 
             for (int i = 0; i < numVeins; i++)
             {
@@ -218,94 +264,11 @@ namespace MCarmada.World.Generation
             }
         }
 
-        private void GenerateWater()
-        {
-            int waterLevel = (level.Depth / 2) - 1;
-            int numSources = (level.Width * level.Height) / 800;
-            int total = (level.Width * 2) + (level.Height * 2) + numSources;
-            int done = 0;
-            int percent = 0;
-            int lastPercent = -1;
-
-            for (int x = 0; x < level.Width; x++)
-            {
-                FloodFill(level.GetBlockIndex(x, waterLevel, 0), Block.Water);
-                FloodFill(level.GetBlockIndex(x, waterLevel, level.Height - 1), Block.Water);
-
-                done += 2;
-                percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Watering... " + percent + "%");
-                    lastPercent = percent;
-                }
-            }
-
-            for (int y = 0; y < level.Height; y ++)
-            {
-                FloodFill(level.GetBlockIndex(0, waterLevel, y), Block.Water);
-                FloodFill(level.GetBlockIndex(level.Width - 1, waterLevel, y), Block.Water);
-
-                done += 2;
-                percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Watering... " + percent + "%");
-                    lastPercent = percent;
-                }
-            }
-
-            for (int i = 0; i < numSources; i++)
-            {
-                int x = level.Rng.Next(0, level.Width);
-                int z = level.Rng.Next(0, level.Height);
-                int y = waterLevel - level.Rng.Next(0, 2);
-
-                FloodFill(level.GetBlockIndex(x, y, z), Block.Water);
-
-                done++;
-                percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Watering... " + percent + "%");
-                    lastPercent = percent;
-                }
-            }
-        }
-
-        private void GenerateLava()
-        {
-            int waterLevel = (level.Depth / 2);
-            int numSources = (level.Width * level.Height) / 20000;
-            int done = 0;
-            int lastPercent = -1;
-
-            for (int i = 0; i < numSources; i++)
-            {
-                int x = level.Rng.Next(0, level.Width);
-                int z = level.Rng.Next(0, level.Height);
-                int y = (int) ((waterLevel - 3) * level.Rng.NextDouble() * level.Rng.NextDouble());
-
-                FloodFill(level.GetBlockIndex(x, y, z), Block.Lava);
-
-                done++;
-                int percent = (int)(((double)done / numSources) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Melting... " + percent + "%");
-                    lastPercent = percent;
-                }
-            }
-        }
-
         private void GenerateSurface()
         {
             OctaveNoise noise1 = new OctaveNoise(8, level.Rng);
             OctaveNoise noise2 = new OctaveNoise(8, level.Rng);
 
-            int done = 0;
-            int lastPercent = -1;
-            
             for (int x = 0; x < level.Width; x++)
             for (int z = 0; z < level.Height; z++)
             {
@@ -326,32 +289,62 @@ namespace MCarmada.World.Generation
                     {
                         level.SetBlock(x, y, z, Block.Sand);
                     }
-                    else
+                    else if (above != Block.Water)
                     {
                         level.SetBlock(x, y, z, Block.Grass);
                     }
                 }
+            }
+        }
+        private void GenerateWater()
+        {
+            int waterLevel = (level.Depth / 2) - 1;
+            int numSources = (level.Width * level.Height) / 800;
+            int total = (level.Width * 2) + (level.Height * 2) + numSources;
 
-                done++;
-                double pc2 = (double)(level.Width * level.Height);
-                int percent = (int)(((double)done / pc2) * 100.0);
-                if (percent != lastPercent) 
-                { 
-                    logger.Info("Growing... " + percent + "%");
-                    lastPercent = percent;
-                }
+            for (int x = 0; x < level.Width; x++)
+            {
+                FloodFill(level.GetBlockIndex(x, waterLevel, 0), Block.Water);
+                FloodFill(level.GetBlockIndex(x, waterLevel, level.Height - 1), Block.Water);
+            }
+
+            for (int y = 0; y < level.Height; y++)
+            {
+                FloodFill(level.GetBlockIndex(0, waterLevel, y), Block.Water);
+                FloodFill(level.GetBlockIndex(level.Width - 1, waterLevel, y), Block.Water);
+            }
+
+            for (int i = 0; i < numSources; i++)
+            {
+                int x = level.Rng.Next(0, level.Width);
+                int z = level.Rng.Next(0, level.Height);
+                int y = waterLevel - level.Rng.Next(0, 2);
+
+                FloodFill(level.GetBlockIndex(x, y, z), Block.Water);
             }
         }
 
+        private void GenerateLava()
+        {
+            int waterLevel = (level.Depth / 2);
+            int numSources = (level.Width * level.Height) / 20000;
+
+            for (int i = 0; i < numSources; i++)
+            {
+                int x = level.Rng.Next(0, level.Width);
+                int z = level.Rng.Next(0, level.Height);
+                int y = (int)((waterLevel - 3) * level.Rng.NextDouble() * level.Rng.NextDouble());
+
+                FloodFill(level.GetBlockIndex(x, y, z), Block.Lava);
+            }
+        }
+
+
         private void GeneratePlants()
         {
-            int numFlowers = (level.Width * level.Height) / 3000;
+            int numFlowers = (level.Width * level.Height) / 1000;
             int numShrooms = (level.Width * level.Height) / 2000;
-            int numTrees = (level.Width * level.Height) / 4000;
-
-            int total = numFlowers + numShrooms + numTrees;
-            int done = 0;
-            int lastPercent = -1;
+            int numTrees = (level.Width * level.Height) / 2000;
 
             for (int i = 0; i < numFlowers; i++)
             {
@@ -373,6 +366,7 @@ namespace MCarmada.World.Generation
                         if (level.IsValidBlock(flowerX, 0, flowerZ))
                         {
                             int flowerY = heightMap[flowerX + flowerZ * level.Width] + 1;
+                            flowerY = level.FindLitY(flowerX, flowerY, flowerZ);
                             Block below = level.GetBlock(flowerX, flowerY - 1, flowerZ);
 
                             if (level.GetBlock(flowerX, flowerY, flowerZ) == 0 && below == Block.Grass)
@@ -381,14 +375,6 @@ namespace MCarmada.World.Generation
                             }
                         }
                     }
-                }
-
-                done++;
-                int percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Planting... " + percent + "%");
-                    lastPercent = percent;
                 }
             }
 
@@ -423,14 +409,6 @@ namespace MCarmada.World.Generation
                         }
                     }
                 }
-
-                done++;
-                int percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Planting... " + percent + "%");
-                    lastPercent = percent;
-                }
             }
 
             for (int i = 0; i < numTrees; i++)
@@ -451,6 +429,7 @@ namespace MCarmada.World.Generation
                         if (level.IsValidBlock(treeX, 0, treeZ) && level.Rng.NextDouble() <= 0.25)
                         {
                             int treeY = heightMap[treeX + treeZ * level.Width] + 1;
+                            treeY = level.FindLitY(treeX, treeY, treeZ);
                             int treeHeight = level.Rng.Next(1, 3) + 4;
 
                             if (level.IsSpaceForTree(treeX, treeY, treeZ, treeHeight))
@@ -460,14 +439,67 @@ namespace MCarmada.World.Generation
                         }
                     }
                 }
+            }
+        }
 
-                done++;
-                int percent = (int)(((double)done / total) * 100.0);
-                if (percent != lastPercent)
-                {
-                    logger.Info("Planting... " + percent + "%");
-                    lastPercent = percent;
-                }
+        private void FillOblateSpheroid(int centreX, int centreY, int centreZ, double radius, Block block)
+	    {
+	        int xStart = (int)Math.Floor(Math.Max(centreX - radius, 0));
+	        int xEnd = (int)Math.Floor(Math.Min(centreX + radius, level.Width - 1));
+	        int yStart = (int)Math.Floor(Math.Max(centreY - radius, 0));
+	        int yEnd = (int)Math.Floor(Math.Min(centreY + radius, level.Depth - 1));
+	        int zStart = (int)Math.Floor(Math.Max(centreZ - radius, 0));
+	        int zEnd = (int)Math.Floor(Math.Min(centreZ + radius, level.Height - 1));
+
+	        for (double x = xStart; x < xEnd; x++)
+	        for (double y = yStart; y < yEnd; y++)
+	        for (double z = zStart; z < zEnd; z++)
+	        {
+	            double dx = x - centreX;
+	            double dy = y - centreY;
+	            double dz = z - centreZ;
+
+	            int ix = (int)x;
+	            int iy = (int)y;
+	            int iz = (int)z;
+
+	            if ((dx * dx + 2 * dy * dy + dz * dz) < (radius * radius) &&
+	                level.IsValidBlock(ix, iy, iz))
+	            {
+	                if (level.GetBlock(ix, iy, iz) == Block.Stone)
+	                {
+	                    level.SetBlock(ix, iy, iz, block);
+	                }
+	            }
+	        }
+	    }
+
+
+        private void FloodFill(int startIndex, Block block)
+        {
+            int oneY = level.Width * level.Height;
+
+            if (startIndex < 0) return; // y below map, immediately ignore
+            ClassicGenerator.FastIntStack stack = new ClassicGenerator.FastIntStack(4);
+            stack.Push(startIndex);
+
+            while (stack.Size > 0)
+            {
+                int index = stack.Pop();
+                if (index < 0 || index >= level.Blocks.Length) continue;
+
+                if (level.Blocks[index] != 0) continue;
+                level.Blocks[index] = block;
+
+                int x = index % level.Width;
+                int y = index / oneY;
+                int z = (index / level.Width) % level.Height;
+
+                if (x > 0) stack.Push(index - 1);
+                if (x < level.Width - 1) stack.Push(index + 1);
+                if (z > 0) stack.Push(index - level.Width);
+                if (z < level.Height - 1) stack.Push(index + level.Width);
+                if (y > 0) stack.Push(index - oneY);
             }
         }
     }

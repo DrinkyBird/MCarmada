@@ -124,7 +124,11 @@ namespace MCarmada.World
         private int DoBlockFall(int x, int y, int z)
         {
             int yy = y;
-            while (!IsBlockSolid(GetBlock(x, yy - 1, z))) yy--;
+            while (!IsBlockSolid(GetBlock(x, yy - 1, z)))
+            {
+                if (yy == 0) return yy;
+                yy--;
+            }
             return yy;
         }
 
@@ -138,6 +142,40 @@ namespace MCarmada.World
         {
             return (block == Block.Air || block == Block.Dandelion || block == Block.Rose ||
                     block == Block.BrownMushroom || block == Block.RedMushroom);
+        }
+
+        public bool BlockAllowsLight(Block b)
+        {
+            return (b == Block.Air || b == Block.Glass);
+        }
+
+        public bool IsBlockLit(int x, int y, int z)
+        {
+            if (y == Depth)
+            {
+                return true;
+            }
+
+            for (int yy = y; yy < Depth; yy++)
+            {
+                if (!BlockAllowsLight(GetBlock(x, yy, z)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int FindLitY(int x, int y, int z)
+        {
+            int yy = y;
+            while (!IsBlockLit(x, yy, z))
+            {
+                yy++;
+            }
+
+            return yy;
         }
     }
 }
