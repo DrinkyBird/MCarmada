@@ -114,10 +114,9 @@ namespace MCarmada.World
 
             Blocks[(y * Height + z) * Width + x] = block;
 
-            ScheduleBlockTick(x, y, z);
-
             if (Generated)
             {
+                ScheduleBlockTick(x, y, z);
                 server.BroadcastBlockChange(x, y, z, block);
             }
 
