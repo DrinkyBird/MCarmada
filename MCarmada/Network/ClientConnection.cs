@@ -13,7 +13,7 @@ using NLog;
 
 namespace MCarmada.Network
 {
-    class ClientConnection
+    internal class ClientConnection
     {
         private static readonly int MAX_OUT_BUF_SIZE = 1 * 1024 * 1024;
 

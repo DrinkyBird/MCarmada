@@ -5,8 +5,10 @@ using System.Text;
 
 namespace MCarmada.Utils
 {
-    class FixedPoint
+    public class FixedPoint
     {
+        private FixedPoint() {}
+
         public static short ToFixedPoint(float value)
         {
             return (short) (value * 32.0f);

@@ -2,7 +2,7 @@
 
 namespace MCarmada.World
 {
-    partial class Level
+    public partial class Level
     {
         public bool IsSpaceForTree(int x, int y, int z, int height)
         {

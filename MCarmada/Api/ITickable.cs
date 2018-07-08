@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MCarmada.Api
 {
-    interface ITickable
+    public interface ITickable
     {
         void Tick();
     }

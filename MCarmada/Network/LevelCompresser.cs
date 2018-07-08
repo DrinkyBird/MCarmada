@@ -11,7 +11,7 @@ using MCarmada.World;
 
 namespace MCarmada.Network
 {
-    class LevelCompresser
+    internal class LevelCompresser
     {
         private MemoryStream stream;
         private GZipStream gzip;

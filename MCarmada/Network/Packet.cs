@@ -11,7 +11,7 @@ using MCarmada.World;
 
 namespace MCarmada.Network
 {
-    class Packet : IDisposable
+    public class Packet : IDisposable
     {
         private MemoryStream buffer;
         private BinaryWriter writer;

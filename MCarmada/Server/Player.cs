@@ -16,7 +16,7 @@ using NLog;
 
 namespace MCarmada.Server
 {
-    class Player : ITickable
+    public class Player : ITickable
     {
         private ClientConnection connection;
         private Server server;

@@ -8,7 +8,7 @@ using NLog;
 
 namespace MCarmada.Network
 {
-    class Listener : IDisposable
+    internal class Listener : IDisposable
     {
         private Server.Server server;
         private TcpListener socket;

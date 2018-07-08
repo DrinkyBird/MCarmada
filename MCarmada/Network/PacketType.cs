@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MCarmada.Network
 {
-    class PacketType
+    public class PacketType
     {
         public enum Header
         {

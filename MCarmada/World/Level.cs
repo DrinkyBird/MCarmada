@@ -14,7 +14,7 @@ using NLog;
 
 namespace MCarmada.World
 {
-    partial class Level : ITickable
+    public partial class Level : ITickable
     {
         public static readonly int LEVEL_VERSION = 1;
 

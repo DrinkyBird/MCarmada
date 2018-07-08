@@ -11,7 +11,7 @@ using NLog;
 
 namespace MCarmada
 {
-    class Program : ITickable
+    internal class Program : ITickable
     {
         public static Program Instance { get; private set; }
 

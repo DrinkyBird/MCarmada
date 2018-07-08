@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MCarmada.Server
 {
-	partial class Server
+	public partial class Server
 	{
 	    private string GenerateSalt(int length)
 	    {

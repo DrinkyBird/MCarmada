@@ -7,7 +7,7 @@ using YamlDotNet.Serialization;
 
 namespace MCarmada.World
 {
-    partial class Level
+    public partial class Level
     {
         private static readonly ulong WATER_TICK_DELAY = 4;
         private static readonly ulong LAVA_TICK_DELAY = 10;

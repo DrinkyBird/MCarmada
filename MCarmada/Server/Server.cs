@@ -12,9 +12,9 @@ using NLog;
 
 namespace MCarmada.Server
 {
-    partial class Server : ITickable, IDisposable
+    public partial class Server : ITickable, IDisposable
     {
-        public Listener listener;
+        internal Listener listener;
 
         public Level level;
         public Player[] players;

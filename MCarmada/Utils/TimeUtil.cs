@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MCarmada.Utils
 {
-    class TimeUtil
+    public class TimeUtil
     {
         private TimeUtil()
         {

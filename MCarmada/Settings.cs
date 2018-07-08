@@ -8,7 +8,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace MCarmada
 {
-    class Settings
+    public class Settings
     {
         public ushort Port { get; set; }
         public string ServerName { get; set; }
@@ -35,6 +35,8 @@ namespace MCarmada
         }
 
         public WorldSettings World { get; set; }
+
+        internal Settings() { }
 
         public static Settings Load()
         {

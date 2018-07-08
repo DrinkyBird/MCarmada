@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MCarmada.Server
 {
-    class NameList
+    public class NameList
     {
         private string filePath;
         public List<string> Names = new List<string>();

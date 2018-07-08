@@ -7,7 +7,7 @@ using NLog;
 
 namespace MCarmada.Utils
 {
-    class LogUtils
+    public class LogUtils
     {
         public static Logger GetClassLogger()
         {

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace MCarmada.Server
 {
-    partial class Server
+    public partial class Server
     {
         private uint lastHeartbeat = 0;
         private void SendHeartbeat()
