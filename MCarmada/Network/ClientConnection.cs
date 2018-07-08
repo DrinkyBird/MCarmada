@@ -237,7 +237,6 @@ namespace MCarmada.Network
             {
                 throw new InvalidOperationException("Length of packet " + packet.Type + " is wrong: " + packet.GetLength() + " should be " +
                                                  PacketType.GetPacketSize(packet.Type));
-                return;
             }
 
             byte[] bytes = packet.GetBytes();

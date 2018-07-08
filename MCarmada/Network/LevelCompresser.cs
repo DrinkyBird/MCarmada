@@ -13,8 +13,6 @@ namespace MCarmada.Network
 {
     class LevelCompresser
     {
-        private Level level;
-
         private MemoryStream stream;
         private GZipStream gzip;
         private BinaryWriter writer;
