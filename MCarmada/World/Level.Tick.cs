@@ -63,6 +63,8 @@ namespace MCarmada.World
 
         public void Tick()
         {
+            server.PluginManager.OnLevelTick(this, LevelTick);
+
             for (int i = 0; i < scheduledTicks.Count; i++)
             {
                 ScheduledTick tick = scheduledTicks[i];

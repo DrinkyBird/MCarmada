@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using MCarmada.Api;
+using MCarmada.Commands;
 using MCarmada.Cpe;
 using MCarmada.Network;
+using MCarmada.Plugins;
 using MCarmada.Utils;
 using MCarmada.World;
 using NLog;
@@ -39,6 +41,9 @@ namespace MCarmada.Server
         public NameList OpList { get; private set; }
         public NameList Whitelist { get; private set; }
 
+        internal PluginManager PluginManager { get; private set; }
+        internal CommandManager CommandManager { get; private set; }
+
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
             new CpeExtension(CpeExtension.LongerMessages, 1),
@@ -55,6 +60,11 @@ namespace MCarmada.Server
 
             players = new Player[Program.Instance.Settings.MaxPlayers];
             listener = new Listener(this, port);
+
+            CommandManager = new CommandManager();
+
+            PluginManager = new PluginManager(this);
+            PluginManager.LoadDirectory("Plugins/");
 
             if (!AttemptLoadLevel())
             {
@@ -108,6 +118,8 @@ namespace MCarmada.Server
         {
             double start = TimeUtil.GetTimeInMs();
 
+            PluginManager.OnServerTick(this, CurrentTick);
+
             listener.AcceptNewConnections();
 
             for (int i = 0; i < listener.Connections.Count; i++)
@@ -141,7 +153,7 @@ namespace MCarmada.Server
             }
         }
 
-        public Player CreatePlayer(ClientConnection connection, string name)
+        internal Player CreatePlayer(ClientConnection connection, string name)
         {
             int id = FindIdForPlayer();
 
@@ -154,6 +166,8 @@ namespace MCarmada.Server
             Player player = new Player(this, connection, name, id);
 
             players[id] = player;
+
+            PluginManager.OnPlayerConnect(player);
 
             return player;
         }

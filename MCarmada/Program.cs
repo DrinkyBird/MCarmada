@@ -13,7 +13,7 @@ namespace MCarmada
 {
     internal class Program : ITickable
     {
-        public static Program Instance { get; private set; }
+        internal static Program Instance { get; private set; }
 
         enum ConsoleCtrlHandlerCode : uint
         {

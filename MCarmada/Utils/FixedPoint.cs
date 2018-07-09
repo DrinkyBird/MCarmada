@@ -18,5 +18,15 @@ namespace MCarmada.Utils
         {
             return (float) value / 32.0f;
         }
+
+        public static byte AngleToByte(float angle)
+        {
+            return (byte) (angle * 256.0f / 360.0f);
+        }
+
+        public static float AngleToFloat(byte angle)
+        {
+            return angle * 360.0f / 256.0f;
+        }
     }
 }

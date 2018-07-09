@@ -52,6 +52,8 @@ namespace MCarmada.World
             generator = WorldGenerator.Generators[settings.Generator];
 
             Init();
+
+            server.PluginManager.OnLevelLoaded(this);
         }
 
         private Level(Server.Server server, Settings.WorldSettings settings, short w, short d, short h, Block[] blocks, int seed, string generator, ulong tick, List<ScheduledTick> ticks)
@@ -70,6 +72,8 @@ namespace MCarmada.World
 
             Rng = new Random(Seed);
             this.generator = WorldGenerator.Generators[generator];
+
+            server.PluginManager.OnLevelLoaded(this);
         }
 
         private void Init()
@@ -119,6 +123,8 @@ namespace MCarmada.World
                 ScheduleBlockTick(x, y, z);
                 server.BroadcastBlockChange(x, y, z, block);
             }
+
+            server.PluginManager.OnLevelBlockChange(this, x, y, z, block);
 
             return true;
         }

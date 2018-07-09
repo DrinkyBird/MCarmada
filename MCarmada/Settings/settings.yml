@@ -8,10 +8,10 @@ broadcast: true
 whitelist: true
 world:
     name: test
-    width: 128
-    depth: 128
-    height: 128
-    generator: test
+    width: 64
+    depth: 64
+    height: 64
+    generator: classic
     water_flow: true
     lava_flow: true
     grow_trees: true

@@ -95,22 +95,33 @@ namespace MCarmada.Network
 
             int len = (int) inBuffer.Length;
 
-            while (inBuffer.Position < len)
+            try
             {
-                PacketType.Header type = (PacketType.Header) inBuffer.ReadByte();
-
-                int packetLen = PacketType.GetPacketSize(type);
-                byte[] data = new byte[packetLen + 1];
-                inBuffer.Read(data, 1, packetLen);
-                data[0] = (byte) type;
-
-                Packet packet = new Packet(data);
-                HandlePacket(packet);
-                // in case we got disconnected in the middle of reading packets
-                if (!Connected)
+                while (inBuffer.Position < len)
                 {
-                    return;
+                    PacketType.Header type = (PacketType.Header) inBuffer.ReadByte();
+
+                    int packetLen = PacketType.GetPacketSize(type);
+                    byte[] data = new byte[packetLen + 1];
+                    inBuffer.Read(data, 1, packetLen);
+                    data[0] = (byte) type;
+
+                    Packet packet = new Packet(data);
+                    HandlePacket(packet);
+                    // in case we got disconnected in the middle of reading packets
+                    if (!Connected)
+                    {
+                        return;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Packet read error:");
+                logger.Error(ex);
+
+                Disconnect("Unexpected error reading packets.");
+                return;
             }
 
             inBuffer.SetLength(0);
@@ -248,6 +259,14 @@ namespace MCarmada.Network
             }
 
             outBuffer.Write(bytes, 0, len);
+        }
+
+        private void SendMessage(string message)
+        {
+            Packet msg = new Packet(PacketType.Header.Message);
+            msg.Write((byte)0);
+            msg.Write(message);
+            Send(msg);
         }
 
         public void Flush()

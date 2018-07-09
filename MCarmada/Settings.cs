@@ -36,7 +36,7 @@ namespace MCarmada
 
         public WorldSettings World { get; set; }
 
-        internal Settings() { }
+        public Settings() { }
 
         public static Settings Load()
         {

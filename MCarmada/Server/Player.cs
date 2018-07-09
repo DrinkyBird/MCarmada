@@ -11,6 +11,7 @@ using MCarmada.Api;
 using MCarmada.Cpe;
 using MCarmada.Network;
 using MCarmada.Utils;
+using MCarmada.Utils.Maths;
 using MCarmada.World;
 using NLog;
 
@@ -43,7 +44,7 @@ namespace MCarmada.Server
 
         public bool IsOp = true;
 
-        public Player(Server server, ClientConnection connection, string name, int id)
+        internal Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
             this.server = server;
@@ -163,12 +164,29 @@ namespace MCarmada.Server
                     return;
                 }
 
+                if (destroyed)
+                {
+                    server.PluginManager.OnPlayerDestroyBlock(this, x, y, z, oldBlock);
+                }
+                else
+                {
+                    server.PluginManager.OnPlayerPlaceBlock(this, x, y, z, newBlock);
+                }
+
+                server.PluginManager.OnPlayerChangeBlock(this, x, y, z, oldBlock, newBlock);
+
                 level.SetBlock(x, y, z, newBlock);
             }
             else if (packet.Type == PacketType.Header.Message)
             {
                 byte unused = packet.ReadByte();
                 string message = packet.ReadString();
+
+                if (message.StartsWith("/"))
+                {
+                    server.CommandManager.Execute(this, message);
+                    return;
+                }
 
                 if (SupportsExtension(CpeExtension.LongerMessages))
                 {
@@ -223,21 +241,40 @@ namespace MCarmada.Server
             }
             else if (packet.Type == PacketType.Header.PlayerPosition)
             {
+                Vector3 oldPosition = new Vector3(X, Y, Z);
+                Vector2 oldRotation = new Vector2(Yaw, Pitch);
+
                 byte id = packet.ReadByte();
                 X = FixedPoint.ToFloatingPoint(packet.ReadShort());
                 Y = FixedPoint.ToFloatingPoint(packet.ReadShort());
                 Z = FixedPoint.ToFloatingPoint(packet.ReadShort());
-                Yaw = packet.ReadByte();
-                Pitch = packet.ReadByte();
+                byte byteYaw = packet.ReadByte();
+                byte bytePitch = packet.ReadByte();
+
+                Yaw = FixedPoint.AngleToFloat(byteYaw);
+                Pitch = FixedPoint.AngleToFloat(bytePitch);
+
+                Vector3 newPosition = new Vector3(X, Y, Z);
+                Vector2 newRotation = new Vector2(Yaw, Pitch);
 
                 Packet update = new Packet(PacketType.Header.PlayerPosition);
                 update.Write((byte) ID);
                 update.Write(FixedPoint.ToFixedPoint(X));
                 update.Write(FixedPoint.ToFixedPoint(Y));
                 update.Write(FixedPoint.ToFixedPoint(Z));
-                update.Write((byte) Yaw);
-                update.Write((byte) Pitch);
+                update.Write(byteYaw);
+                update.Write(bytePitch);
                 server.BroadcastPacketExcept(update, this);
+
+                if (oldPosition != newPosition)
+                {
+                    server.PluginManager.OnPlayerMove(this, oldPosition, newPosition);
+                }
+
+                if (oldRotation != newRotation)
+                {
+                    server.PluginManager.OnPlayerRotate(this, oldRotation, newRotation);
+                }
             }
             else if (packet.Type == PacketType.Header.CpeCustomBlockSupportLevel)
             {
@@ -288,6 +325,8 @@ namespace MCarmada.Server
                     player.Send(os);
                 }
             }
+
+            server.PluginManager.OnPlayerSpawn(this);
         }
 
         public void Send(Packet packet)
@@ -319,6 +358,8 @@ namespace MCarmada.Server
 
         public void Despawn()
         {
+            server.PluginManager.OnPlayerQuit(this);
+
             Packet despawn = new Packet(PacketType.Header.DespawnPlayer);
             despawn.Write((byte) ID);
             server.BroadcastPacket(despawn);

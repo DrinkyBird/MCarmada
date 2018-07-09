@@ -144,7 +144,7 @@ namespace MCarmada.World
                     block == Block.BrownMushroom || block == Block.RedMushroom);
         }
 
-        public bool BlockAllowsLight(Block b)
+        public static bool BlockAllowsLight(Block b)
         {
             return (b == Block.Air || b == Block.Glass);
         }
