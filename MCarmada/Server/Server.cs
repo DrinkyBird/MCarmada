@@ -47,8 +47,9 @@ namespace MCarmada.Server
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
             new CpeExtension(CpeExtension.LongerMessages, 1),
-            new CpeExtension(CpeExtension.CustomBlocks, 1), 
-            new CpeExtension(CpeExtension.FullCp437, 1), 
+            new CpeExtension(CpeExtension.CustomBlocks, 1),
+            new CpeExtension(CpeExtension.FullCp437, 1),
+            new CpeExtension(CpeExtension.MessageTypes, 1),
         };
 
         public Server(ushort port)
@@ -215,7 +216,7 @@ namespace MCarmada.Server
             }
         }
 
-        public void BroadcastMessage(sbyte id, string message)
+        public void BroadcastMessage(string message, MessageType type = MessageType.Chat)
         {
             logger.Info(message);
 
@@ -226,13 +227,8 @@ namespace MCarmada.Server
                     continue;
                 }
 
-                player.SendMessage(message);
+                player.SendMessage(message, type);
             }
-        }
-
-        public void BroadcastMessage(string message)
-        {
-            BroadcastMessage(-1, message);
         }
 
         public void BroadcastPacket(Packet packet)

@@ -334,7 +334,7 @@ namespace MCarmada.Server
             connection.Send(packet);
         }
 
-        public void SendMessage(string message)
+        public void SendMessage(string message, MessageType type = MessageType.Chat)
         {
             if (!SupportsExtension(CpeExtension.FullCp437))
             {
@@ -351,7 +351,7 @@ namespace MCarmada.Server
             }
 
             Packet msg = new Packet(PacketType.Header.Message);
-            msg.Write((byte) 0);
+            msg.Write((sbyte) (SupportsExtension(CpeExtension.MessageTypes) ? type : 0));
             msg.Write(message);
             Send(msg);
         }
