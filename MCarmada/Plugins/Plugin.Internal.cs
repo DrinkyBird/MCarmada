@@ -11,6 +11,11 @@ namespace MCarmada.Plugins
             Internal__interface = pluginInterface;
         }
 
+        protected void _OnUnload()
+        {
+
+        }
+
         public void AddEventListener(EventListener listener)
         {
             Internal__interface.AddEventListener(listener);
