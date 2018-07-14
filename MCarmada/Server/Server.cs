@@ -50,6 +50,7 @@ namespace MCarmada.Server
             new CpeExtension(CpeExtension.CustomBlocks, 1),
             new CpeExtension(CpeExtension.FullCp437, 1),
             new CpeExtension(CpeExtension.MessageTypes, 1),
+            new CpeExtension(CpeExtension.FastMap, 1),
         };
 
         public Server(ushort port)
@@ -63,6 +64,7 @@ namespace MCarmada.Server
             listener = new Listener(this, port);
 
             CommandManager = new CommandManager();
+            CommandManager.RegisterMainCommands();
 
             PluginManager = new PluginManager(this);
             PluginManager.LoadDirectory("Plugins/");

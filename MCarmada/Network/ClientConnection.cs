@@ -237,14 +237,14 @@ namespace MCarmada.Network
             player.SendLevel();
         }
 
-        public void Send(Packet packet)
+        public void Send(Packet packet, bool checkPacketSize = true)
         {
             if (!Connected)
             {
                 return;
             }
 
-            if (packet.GetLength() - 1 != PacketType.GetPacketSize(packet.Type))
+            if (packet.GetLength() - 1 != PacketType.GetPacketSize(packet.Type) && checkPacketSize)
             {
                 throw new InvalidOperationException("Length of packet " + packet.Type + " is wrong: " + packet.GetLength() + " should be " +
                                                  PacketType.GetPacketSize(packet.Type));

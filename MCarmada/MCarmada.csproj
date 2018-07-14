@@ -58,6 +58,9 @@
     <Reference Include="CommandLine">
       <HintPath>..\Libraries\CommandLine.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetZip">
+      <HintPath>..\Libraries\DotNetZip.dll</HintPath>
+    </Reference>
     <Reference Include="Extensions.Data.xxHash, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Extensions.Data.xxHash.dll</HintPath>
@@ -76,10 +79,14 @@
   <ItemGroup>
     <Compile Include="Api\ITickable.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\CommandExtensions.cs" />
     <Compile Include="Commands\CommandManager.cs" />
     <Compile Include="Cpe\CpeExtension.cs" />
     <Compile Include="Network\ClientConnection.cs" />
+    <Compile Include="Network\ILevelCompressor.cs" />
     <Compile Include="Network\LevelCompresser.cs" />
+    <Compile Include="Network\LevelCompressorFast.cs" />
+    <Compile Include="Network\LevelCompressorSlow.cs" />
     <Compile Include="Network\Listener.cs" />
     <Compile Include="Network\Packet.cs" />
     <Compile Include="Network\PacketType.cs" />
@@ -91,6 +98,7 @@
     <Compile Include="Plugins\PluginManager.Events.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Server\MessageType.cs" />
     <Compile Include="Server\NameList.cs" />
     <Compile Include="Server\Player.cs" />
     <Compile Include="Server\Server.cs" />

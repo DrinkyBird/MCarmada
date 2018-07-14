@@ -26,6 +26,11 @@ namespace MCarmada.Plugins
 
         internal void LoadDirectory(string directory)
         {
+            if (!Directory.Exists(directory))
+            {
+                return;
+            }
+
             string[] files = Directory.GetFiles(directory);
             List<string> dlls = new List<string>();
 
@@ -81,7 +86,6 @@ namespace MCarmada.Plugins
 
                 try
                 {
-
                     instance = Activator.CreateInstance(type);
                 }
                 catch (Exception ex)

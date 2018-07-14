@@ -1,20 +1,19 @@
 port: 25565
 server_name: "MCarmada Test"
-server_motd: "Test MotD"
+server_motd: "&eMCarmada rules!"
 public: true
 verify_names: false
 max_players: 32
 broadcast: true
 whitelist: true
 world:
-    name: test
-    width: 64
-    depth: 64
-    height: 64
+    name: test5122
+    width: 512
+    depth: 512
+    height: 512
     generator: classic
     water_flow: true
     lava_flow: true
     grow_trees: true
     block_fall: true
-    enable_save: false
-    seed: 1155585812
+    enable_save: true

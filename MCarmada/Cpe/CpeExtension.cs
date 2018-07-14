@@ -31,6 +31,7 @@ namespace MCarmada.Cpe
         public static readonly string EnvMapAspect = "EnvMapAspect";
         public static readonly string EntityProperty = "EntityProperty";
         public static readonly string ExtEntityPositions = "ExtEntityPositions";
+        public static readonly string FastMap = "FastMap";
 
         public string Name;
         public int Version;

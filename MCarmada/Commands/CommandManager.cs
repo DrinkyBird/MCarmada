@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 using MCarmada.Server;
 
 namespace MCarmada.Commands
@@ -54,6 +55,11 @@ namespace MCarmada.Commands
             string[] parameters = new string[words.Length - 1];
             Array.Copy(words, 1, parameters, 0, parameters.Length);
             command.Execute(source, parameters);
+        }
+
+        internal void RegisterMainCommands()
+        {
+            AddCommand("exts", new CommandExtensions());
         }
     }
 }

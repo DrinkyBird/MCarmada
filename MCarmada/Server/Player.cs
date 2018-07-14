@@ -24,7 +24,7 @@ namespace MCarmada.Server
 
         public string Name { get; private set; }
 
-        private LevelCompresser levelCompresser;
+        private ILevelCompressor levelCompressor;
         private bool compressed = false;
         private bool levelSent = false;
         private int dataOffset = 0;
@@ -36,7 +36,7 @@ namespace MCarmada.Server
         private uint lastPing = 0;
 
         private Logger logger;
-        private CpeExtension[] extensions;
+        public CpeExtension[] Extensions { get; private set; }
 
         private string messageBuffer = String.Empty;
 
@@ -54,12 +54,12 @@ namespace MCarmada.Server
 
             logger = LogManager.GetLogger("Player[" + Name + "]");
 
-            extensions = new CpeExtension[connection.clientSupportedExtensions.Count];
-            for (int i = 0; i < extensions.Length; i++)
+            Extensions = new CpeExtension[connection.clientSupportedExtensions.Count];
+            for (int i = 0; i < Extensions.Length; i++)
             {
                 KeyValuePair<string, int> pair = connection.clientSupportedExtensions[i];
                 CpeExtension ext = new CpeExtension(pair.Key, pair.Value);
-                extensions[i] = ext;
+                Extensions[i] = ext;
             }
         }
 
@@ -67,72 +67,42 @@ namespace MCarmada.Server
         {
             if (!levelSent)
             {
-                HandleLevelData();
+                levelCompressor.Process();
+
+                if (levelCompressor.IsComplete())
+                {
+                    levelSent = true;
+
+                    SpawnPlayer();
+
+                    levelCompressor.Dispose();
+                    levelCompressor = null;
+                }
             }
 
             if (server.CurrentTick - lastPing >= 20)
             {
                 Send(new Packet(PacketType.Header.Ping));
+                lastPing = server.CurrentTick;
             }
         }
 
         public void SendLevel()
         {
-            Send(new Packet(PacketType.Header.LevelInit));
+            bool fastMap = SupportsExtension(CpeExtension.FastMap, 1);
+            bool useFallbacks = !SupportsExtension(CpeExtension.CustomBlocks);
 
-            levelCompresser = new LevelCompresser(server.level);
-            levelCompresser.UseCpeFallbacks = !SupportsExtension(CpeExtension.CustomBlocks);
-        }
-
-        private void HandleLevelData()
-        {
-            if (!compressed)
+            if (fastMap)
             {
-                int total = server.level.Blocks.Length;
-                int length = Math.Min(32 * 1024, total - dataOffset);
+                int volume = server.level.Width * server.level.Depth * server.level.Height;
 
-                byte[] array = new byte[length];
-                Array.Copy(server.level.Blocks, dataOffset, array, 0, array.Length);
-                dataOffset += length;
-
-                levelCompresser.AddChunk(array);
-
-                if (dataOffset == total)
-                {
-                    levelCompresser.Flush();
-                    compressed = true;
-                }
+                Send(new Packet(PacketType.Header.LevelInit).Write(volume), false);
+                levelCompressor = new LevelCompressorFast(this, server.level, useFallbacks);
             }
             else
             {
-                int length;
-                for (int i = 0; i < 2; i++)
-                {
-                    byte[] chunk = levelCompresser.GetChunk(out length);
-
-                    Packet packet = new Packet(PacketType.Header.LevelChunk);
-                    packet.Write((short)length);
-                    packet.Write(chunk);
-                    packet.Write((byte)0);
-                    Send(packet);
-
-                    logger.Info(levelCompresser.Position + " / " + levelCompresser.Length);
-
-                    if (levelCompresser.Position >= levelCompresser.Length)
-                    {
-                        levelSent = true;
-
-                        Packet finish = new Packet(PacketType.Header.LevelFinish);
-                        finish.Write((short)server.level.Width);
-                        finish.Write((short)server.level.Depth);
-                        finish.Write((short)server.level.Height);
-                        Send(finish);
-
-                        SpawnPlayer();
-
-                        break;
-                    }
-                }
+                Send(new Packet(PacketType.Header.LevelInit));
+                levelCompressor = new LevelCompressorSlow(this, server.level, useFallbacks);
             }
         }
 
@@ -331,7 +301,12 @@ namespace MCarmada.Server
 
         public void Send(Packet packet)
         {
-            connection.Send(packet);
+            Send(packet, true);
+        }
+
+        private void Send(Packet packet, bool checkPacketSize)
+        {
+            connection.Send(packet, checkPacketSize);
         }
 
         public void SendMessage(string message, MessageType type = MessageType.Chat)
@@ -372,7 +347,7 @@ namespace MCarmada.Server
 
         public bool SupportsExtension(string name, int version = 1)
         {
-            foreach (var extension in extensions)
+            foreach (var extension in Extensions)
             {
                 if (String.Equals(extension.Name, name, StringComparison.CurrentCultureIgnoreCase) && extension.Version == version)
                 {
