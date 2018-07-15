@@ -84,7 +84,6 @@
     <Compile Include="Cpe\CpeExtension.cs" />
     <Compile Include="Network\ClientConnection.cs" />
     <Compile Include="Network\ILevelCompressor.cs" />
-    <Compile Include="Network\LevelCompresser.cs" />
     <Compile Include="Network\LevelCompressorFast.cs" />
     <Compile Include="Network\LevelCompressorSlow.cs" />
     <Compile Include="Network\Listener.cs" />
