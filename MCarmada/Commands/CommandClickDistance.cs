@@ -34,6 +34,7 @@ namespace MCarmada.Commands
             {
                 player.ClickDistance = 5.0f;
                 player.SendMessage("&aClick distance reset to " + player.ClickDistance + ".");
+                return;
             }
 
             float val;

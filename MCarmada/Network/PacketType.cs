@@ -35,8 +35,11 @@ namespace MCarmada.Network
             CpeExtInfo = 0x10,
             CpeExtEntry = 0x11,
 
+            // CPE ClickDistance
+            CpeClickDistance = 0x12,
+
             // CPE CustomBlocks
-            CpeCustomBlockSupportLevel = 0x13
+            CpeCustomBlockSupportLevel = 0x13,
         }
 
         private static Dictionary<Header, int> PacketSizes = new Dictionary<Header, int>();
@@ -68,6 +71,9 @@ namespace MCarmada.Network
             // CPE negotiation
             PacketSizes[Header.CpeExtInfo] = 66;
             PacketSizes[Header.CpeExtEntry] = 68;
+
+            // CPE ClickDistance
+            PacketSizes[Header.CpeClickDistance] = 2;
 
             // CPE CustomBlocks
             PacketSizes[Header.CpeCustomBlockSupportLevel] = 1;
