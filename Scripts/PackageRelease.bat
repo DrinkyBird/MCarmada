@@ -8,6 +8,7 @@ pushd MCarmada\bin\Release
 
 copy /Y *.dll %OUTDIR%\
 copy /Y *.exe %OUTDIR%\
+copy /Y NLog.config %OUTDIR%\
 xcopy /I /E /Y %CD%\Settings %OUTDIR%\Settings
 
 if NOT EXIST %OUTDIR%\Plugins (
