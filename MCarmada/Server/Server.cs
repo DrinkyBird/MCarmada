@@ -51,6 +51,7 @@ namespace MCarmada.Server
             new CpeExtension(CpeExtension.FullCp437, 1),
             new CpeExtension(CpeExtension.MessageTypes, 1),
             new CpeExtension(CpeExtension.FastMap, 1),
+            new CpeExtension(CpeExtension.ClickDistance, 1),
         };
 
         public Server(ushort port)

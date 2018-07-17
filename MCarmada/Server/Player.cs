@@ -44,6 +44,19 @@ namespace MCarmada.Server
 
         public bool IsOp = true;
 
+        private float _clickDistance = 5.0f;
+        public float ClickDistance
+        {
+            get { return _clickDistance; }
+            set
+            {
+                if (!SupportsExtension(CpeExtension.ClickDistance)) return;
+
+                _clickDistance = value; 
+                Send(new Packet(PacketType.Header.CpeClickDistance).Write(FixedPoint.ToFixedPoint(_clickDistance)));
+            }
+        }
+
         internal Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
