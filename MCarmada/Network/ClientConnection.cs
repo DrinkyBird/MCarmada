@@ -294,7 +294,7 @@ namespace MCarmada.Network
                 {
                     // nobody cares
                 }
-                else if (e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.ConnectionAborted)
+                else if (e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.ConnectionAborted || e.SocketErrorCode == SocketError.Shutdown)
                 {
                     logger.Error("While flushing socket data:" + e);
                     Connected = false;
