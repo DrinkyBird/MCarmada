@@ -4,8 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Extensions.Data;
+using fNbt;
 using MCarmada.Api;
 using MCarmada.Network;
 using MCarmada.Utils;
@@ -16,7 +18,7 @@ namespace MCarmada.World
 {
     public partial class Level : ITickable
     {
-        public static readonly int LEVEL_VERSION = 1;
+        public static readonly byte CLASSICWORLD_VERSION = (byte) 1;
 
         public short Width { get; private set; }
         public short Depth { get; private set; }
@@ -35,6 +37,8 @@ namespace MCarmada.World
         private Settings.WorldSettings settings;
 
         public ulong LevelTick { get; private set; }
+
+        public Guid Guid { get; private set; }
 
         public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
@@ -84,6 +88,7 @@ namespace MCarmada.World
                 Blocks[i] = (byte) 0;
             }
 
+            Guid = Guid.NewGuid();
             Generated = false;
             Generate();
         }
@@ -163,175 +168,6 @@ namespace MCarmada.World
             }
 
             return y;
-        }
-
-        public void Save(string outDir)
-        {
-            if (!settings.EnableSave)
-            {
-                return;
-            }
-
-            logger.Info("Saving world to " + outDir);
-            Directory.CreateDirectory(outDir);
-
-            string metadataFile = Path.Combine(outDir, "world.mcarmada");
-            string blocksFile = Path.Combine(outDir, "blocks.mcarmada");
-            string ticksFile = Path.Combine(outDir, "ticks.mcarmada");
-
-            byte[] blocks = BlocksAsByteArray();
-
-            FileStream stream;
-            GZipStream gzip;
-            BinaryWriter writer;
-
-            // 1. write metadata
-            stream = new FileStream(metadataFile, FileMode.Create);
-            writer = new BinaryWriter(stream);
-            
-            writer.Write(new[] {'M', 'C', 'a', 'W'});
-            writer.Write(LEVEL_VERSION);
-
-            writer.Write(Width);
-            writer.Write(Depth);
-            writer.Write(Height);
-            writer.Write(Seed);
-            writer.Write(generator.GetType().FullName);
-            writer.Write(WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key);
-            writer.Write(LevelTick);
-            writer.Write(scheduledTicks.Count);
-
-            writer.Dispose();
-            stream.Dispose();
-            
-            // 2. write blocks
-
-            stream = new FileStream(blocksFile, FileMode.Create);
-            gzip = new GZipStream(stream, CompressionMode.Compress);
-            writer = new BinaryWriter(gzip);
-
-            writer.Write(LEVEL_VERSION);
-            writer.Write(Blocks.Length);
-            writer.Write(XXHash.XXH64(blocks));
-            writer.Write(blocks);
-
-            writer.Dispose();
-            gzip.Dispose();
-            stream.Dispose();
-
-            // 3. write ticks
-
-            stream = new FileStream(ticksFile, FileMode.Create);
-            writer = new BinaryWriter(stream);
-
-            writer.Write(LEVEL_VERSION);
-
-            foreach (var tick in scheduledTicks)
-            {
-                tick.Write(writer);
-            }
-
-            writer.Dispose();
-            stream.Dispose();
-        }
-
-        public static Level Load(Server.Server server, Settings.WorldSettings settings, string dir)
-        {
-            logger.Info("Loading world from " + dir + "...");
-
-            string metadataFile = Path.Combine(dir, "world.mcarmada");
-            string blocksFile = Path.Combine(dir, "blocks.mcarmada");
-            string ticksFile = Path.Combine(dir, "ticks.mcarmada");
-
-            FileStream stream;
-            GZipStream gzip;
-            BinaryReader reader;
-
-            stream = new FileStream(metadataFile, FileMode.Open);
-            reader = new BinaryReader(stream);
-
-            char a = reader.ReadChar();
-            char b = reader.ReadChar();
-            char c = reader.ReadChar();
-            char d = reader.ReadChar();
-
-            if (a != 'M' || b != 'C' || c != 'a' || d != 'W')
-            {
-                throw new InvalidDataException("File header does not match");
-            }
-
-            int version = reader.ReadInt32();
-            if (version != LEVEL_VERSION)
-            {
-                throw new InvalidDataException("File version is unsupported");
-            }
-
-            short width = reader.ReadInt16();
-            short depth = reader.ReadInt16();
-            short height = reader.ReadInt16();
-            int seed = reader.ReadInt32();
-            string generatorClass = reader.ReadString();
-            string generatorName = reader.ReadString();
-            ulong tick = reader.ReadUInt64();
-            int numTicks = reader.ReadInt32();
-
-            reader.Dispose();
-            stream.Dispose();
-
-            stream = new FileStream(blocksFile, FileMode.Open);
-            gzip = new GZipStream(stream, CompressionMode.Decompress);
-            reader = new BinaryReader(gzip);
-
-            int bversion = reader.ReadInt32();
-            if (bversion != LEVEL_VERSION)
-            {
-                throw new InvalidDataException("Blocks f version is unsupported");
-            }
-
-            int length = reader.ReadInt32();
-            ulong hash = reader.ReadUInt64();
-
-            byte[] bytes = new byte[length];
-            Block[] blocks = new Block[length];
-            for (int i = 0; i < length; i++)
-            {
-                byte byt = reader.ReadByte();
-                bytes[i] = byt;
-                blocks[i] = (Block) byt;
-            }
-
-            if (XXHash.XXH64(bytes) != hash)
-            {
-                throw new InvalidDataException("Blocks hash does not match");
-            }
-
-            reader.Dispose();
-            gzip.Dispose();
-            stream.Dispose();
-
-            stream = new FileStream(ticksFile, FileMode.Open);
-            reader = new BinaryReader(stream);
-
-            version = reader.ReadInt32();
-
-            if (version != LEVEL_VERSION)
-            {
-                throw new InvalidDataException("Blocks f version is unsupported");
-            }
-
-            List<ScheduledTick> ticks = new List<ScheduledTick>();
-            for (int i = 0; i < numTicks; i++)
-            {
-                ticks.Add(ScheduledTick.Read(reader));
-            }
-
-            reader.Dispose();
-            stream.Dispose();
-
-            Level level = new Level(server, settings, width, depth, height, blocks, seed, generatorName, tick, ticks);
-            logger.Info("World loaded!");
-
-            return level;
         }
 
         public byte[] BlocksAsByteArray()

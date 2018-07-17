@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using fNbt;
 using YamlDotNet.Serialization;
 
 namespace MCarmada.World
@@ -34,28 +35,21 @@ namespace MCarmada.World
             public TickTiming Timing;
             public ulong TimeAdded;
 
-            public void Write(BinaryWriter writer)
+            public NbtCompound ToCompound()
             {
-                writer.Write(Tick);
-                writer.Write(X);
-                writer.Write(Y);
-                writer.Write(Z);
-                writer.Write((byte) Event);
-                writer.Write((byte) Timing);
-                writer.Write(TimeAdded);
-            }
+                var nbttick = new NbtCompound();
+                nbttick.Add(new NbtLong("When", (long)Tick));
+                nbttick.Add(new NbtByte("Event", (byte)Event));
+                nbttick.Add(new NbtByte("Timing", (byte)Timing));
 
-            public static ScheduledTick Read(BinaryReader reader)
-            {
-                ScheduledTick t = new ScheduledTick();
-                t.Tick = reader.ReadUInt64();
-                t.X = reader.ReadInt32();
-                t.Y = reader.ReadInt32();
-                t.Z = reader.ReadInt32();
-                t.Event = (TickEvent) reader.ReadByte();
-                t.Timing = (TickTiming) reader.ReadByte();
-                t.TimeAdded = reader.ReadUInt64();
-                return t;
+                var pos = new NbtCompound("Position");
+                pos.Add(new NbtInt("X", X));
+                pos.Add(new NbtInt("Y", Y));
+                pos.Add(new NbtInt("Z", Z));
+
+                nbttick.Add(pos);
+
+                return nbttick;
             }
         }
 

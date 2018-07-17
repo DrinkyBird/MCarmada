@@ -167,7 +167,7 @@ namespace MCarmada.Network
                 if (isCpe)
                 {
                     Packet cpeIdent = new Packet(PacketType.Header.CpeExtInfo);
-                    cpeIdent.Write("MCarmada");
+                    cpeIdent.Write(Program.FullName);
                     cpeIdent.Write((short)Server.Server.CPE_EXTENSIONS.Length);
                     Send(cpeIdent);
 

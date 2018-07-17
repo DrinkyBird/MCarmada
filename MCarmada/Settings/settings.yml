@@ -7,10 +7,10 @@ max_players: 32
 broadcast: true
 whitelist: true
 world:
-    name: test5122
-    width: 512
-    depth: 512
-    height: 512
+    name: test3
+    width: 64
+    depth: 64
+    height: 64
     generator: classic
     water_flow: true
     lava_flow: true

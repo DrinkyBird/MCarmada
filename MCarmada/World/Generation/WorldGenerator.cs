@@ -11,6 +11,8 @@ namespace MCarmada.World.Generation
 
         static WorldGenerator()
         {
+            Generators["null"] = new NullGenerator();
+            Generators[""] = Generators["null"];
             Generators["classic"] = new ClassicGenerator();
             Generators["flat"] = new FlatGenerator();
             Generators["debug"] = new DebugGenerator();

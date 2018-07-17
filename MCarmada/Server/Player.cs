@@ -44,6 +44,19 @@ namespace MCarmada.Server
 
         public bool IsOp = true;
 
+        private float _clickDistance = 5.0f;
+        public float ClickDistance
+        {
+            get { return _clickDistance; }
+            set
+            {
+                if (!SupportsExtension(CpeExtension.ClickDistance)) return;
+
+                _clickDistance = value; 
+                Send(new Packet(PacketType.Header.CpeClickDistance).Write(FixedPoint.ToFixedPoint(_clickDistance)));
+            }
+        }
+
         internal Player(Server server, ClientConnection connection, string name, int id)
         {
             this.connection = connection;
@@ -118,6 +131,23 @@ namespace MCarmada.Server
                 bool destroyed = packet.ReadByte() == 0;
                 Block newBlock = destroyed ? Block.Air : (Block) packet.ReadByte();
                 Block oldBlock = level.GetBlock(x, y, z);
+
+                Vector3 bp = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
+                float dist = Vector3.Distance(bp, new Vector3(X, Y, Z));
+
+                if (dist > ClickDistance + 0.5f) // 0.5f for lag comp
+                {
+                    logger.Warn("Client tried to set block outside click distance (" + dist + " > " + (ClickDistance + 0.5f) + ")");
+
+                    Packet correction = new Packet(PacketType.Header.ServerSetBlock);
+                    correction.Write((short)x);
+                    correction.Write((short)y);
+                    correction.Write((short)z);
+                    correction.Write(oldBlock);
+                    Send(correction);
+
+                    return;
+                }
 
                 if ((newBlock == Block.Water || newBlock == Block.WaterStill || newBlock == Block.Lava ||
                      newBlock == Block.LavaStill || newBlock == Block.Bedrock) && !IsOp)
@@ -334,6 +364,17 @@ namespace MCarmada.Server
         public void Despawn()
         {
             server.PluginManager.OnPlayerQuit(this);
+
+            Level.SavedPlayer saved = new Level.SavedPlayer()
+            {
+                Name = Name,
+                X = X,
+                Y = Y,
+                Z = Z,
+                Yaw = Yaw,
+                Pitch = Pitch
+            };
+            server.level.savedPlayers.Add(saved);
 
             Packet despawn = new Packet(PacketType.Header.DespawnPlayer);
             despawn.Write((byte) ID);

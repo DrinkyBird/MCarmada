@@ -60,6 +60,7 @@ namespace MCarmada.Commands
         internal void RegisterMainCommands()
         {
             AddCommand("exts", new CommandExtensions());
+            AddCommand("cd", new CommandClickDistance());
         }
     }
 }

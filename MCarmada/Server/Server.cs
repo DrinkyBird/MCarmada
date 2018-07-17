@@ -51,6 +51,7 @@ namespace MCarmada.Server
             new CpeExtension(CpeExtension.FullCp437, 1),
             new CpeExtension(CpeExtension.MessageTypes, 1),
             new CpeExtension(CpeExtension.FastMap, 1),
+            new CpeExtension(CpeExtension.ClickDistance, 1),
         };
 
         public Server(ushort port)
@@ -89,8 +90,8 @@ namespace MCarmada.Server
                 return false;
             }
 
-            string path = Path.GetFullPath("worlds/" + worldSettings.Name);
-            if (Directory.Exists(path))
+            string path = Path.GetFullPath("worlds/" + worldSettings.Name + "/world.cw");
+            if (File.Exists(path))
             {
                 try
                 {

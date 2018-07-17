@@ -32,7 +32,7 @@ namespace MCarmada.Server
             url += "max=" + players.Length + "&";
             url += "public=" + Program.Instance.Settings.Public + "&";
             url += "salt=" + Salt + "&";
-            url += "software=MCarmada&";
+            url += "software=" + Uri.EscapeDataString(Program.FullName) + "&";
 
             logger.Info("Sending heartbeat: " + url);
 

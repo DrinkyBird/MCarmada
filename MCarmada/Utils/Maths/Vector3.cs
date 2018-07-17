@@ -48,5 +48,15 @@ namespace MCarmada.Utils.Maths
             int z = BitConverter.ToInt32(BitConverter.GetBytes(Z), 0);
             return x * y * z;
         }
+
+        public static float Distance(Vector3 a, Vector3 b)
+        {
+            float dx = b.X - a.X;
+            float dy = b.Y - a.Y;
+            float dz = b.Z - a.Z;
+
+            float distance = (float) Math.Sqrt(dx * dx + dy * dy + dz * dz);
+            return distance;
+        }
     }
 }
