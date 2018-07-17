@@ -365,6 +365,17 @@ namespace MCarmada.Server
         {
             server.PluginManager.OnPlayerQuit(this);
 
+            Level.SavedPlayer saved = new Level.SavedPlayer()
+            {
+                Name = Name,
+                X = X,
+                Y = Y,
+                Z = Z,
+                Yaw = Yaw,
+                Pitch = Pitch
+            };
+            server.level.savedPlayers.Add(saved);
+
             Packet despawn = new Packet(PacketType.Header.DespawnPlayer);
             despawn.Write((byte) ID);
             server.BroadcastPacket(despawn);

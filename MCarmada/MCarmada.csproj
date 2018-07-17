@@ -65,6 +65,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Extensions.Data.xxHash.dll</HintPath>
     </Reference>
+    <Reference Include="fNbt">
+      <HintPath>..\Libraries\fNbt.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\Libraries\NLog.dll</HintPath>
     </Reference>
@@ -119,10 +122,13 @@
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplex.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplexNoise.cs" />
+    <Compile Include="World\Generation\NullGenerator.cs" />
     <Compile Include="World\Generation\TestGenerator.cs" />
     <Compile Include="World\Generation\WorldGenerator.cs" />
     <Compile Include="World\Level.Algos.cs" />
     <Compile Include="World\Level.cs" />
+    <Compile Include="World\Level.IO.cs" />
+    <Compile Include="World\Level.Player.cs" />
     <Compile Include="World\Level.Tick.cs" />
   </ItemGroup>
   <ItemGroup>
