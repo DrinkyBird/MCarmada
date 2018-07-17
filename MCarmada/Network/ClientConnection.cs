@@ -296,12 +296,14 @@ namespace MCarmada.Network
                 }
                 else if (e.SocketErrorCode == SocketError.ConnectionReset || e.SocketErrorCode == SocketError.ConnectionAborted)
                 {
+                    logger.Error("While flushing socket data:" + e);
                     Connected = false;
                     Disconnect("Client disconnected");
                     return;
                 }
                 else
                 {
+                    logger.Error("While flushing socket data:" + e);
                     Disconnect("An unexpected socket error occured (" + e.SocketErrorCode.ToString() + ")");
                     return;
                 }
