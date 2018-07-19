@@ -12,6 +12,12 @@ namespace MCarmada.Commands
     {
         public override void Execute(Player player, string[] args)
         {
+            if (args.Length == 0)
+            {
+                player.SendMessage("&eYour current click distance is " + player.ClickDistance + " blocks");
+                return;
+            }
+
             if (!player.IsOp)
             {
                 player.SendMessage("&cYou do not have permission to use this command.");
