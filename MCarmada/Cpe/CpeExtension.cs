@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MCarmada.Cpe
 {
-    public struct CpeExtension
+    public class CpeExtension
     {
         public static readonly string ClickDistance = "ClickDistance";
         public static readonly string CustomBlocks = "CustomBlocks";

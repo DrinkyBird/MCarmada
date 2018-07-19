@@ -10,6 +10,7 @@ using Extensions.Data;
 using fNbt;
 using MCarmada.Api;
 using MCarmada.Network;
+using MCarmada.Server;
 using MCarmada.Utils;
 using MCarmada.World.Generation;
 using NLog;
@@ -19,6 +20,8 @@ namespace MCarmada.World
     public partial class Level : ITickable
     {
         public static readonly byte CLASSICWORLD_VERSION = (byte) 1;
+
+        public string Name { get; private set; }
 
         public short Width { get; private set; }
         public short Depth { get; private set; }
@@ -40,13 +43,20 @@ namespace MCarmada.World
 
         public Guid Guid { get; private set; }
 
+        public int CreationTime { get; private set; }
+        public int ModificationTime { get; private set; }
+        public int AccessedTime { get; private set; }
+
         public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
             this.settings = settings;
             this.server = server;
+            Name = settings.Name;
             Width = w;
             Depth = d;
             Height = h;
+
+            CreationTime = TimeUtil.GetUnixTime();
 
             Seed = settings.Seed;
             if (Seed == 0) Seed = (int)DateTime.Now.Ticks;
@@ -64,6 +74,7 @@ namespace MCarmada.World
         {
             this.settings = settings;
             this.server = server;
+            Name = settings.Name;
             Width = w;
             Depth = d;
             Height = h;
@@ -85,7 +96,7 @@ namespace MCarmada.World
             Blocks = new Block[Width * Height * Depth];
             for (int i = 0; i < Blocks.Length; i++)
             {
-                Blocks[i] = (byte) 0;
+                Blocks[i] = Block.Air;
             }
 
             Guid = Guid.NewGuid();
@@ -122,6 +133,7 @@ namespace MCarmada.World
             }
 
             Blocks[(y * Height + z) * Width + x] = block;
+            ModificationTime = TimeUtil.GetUnixTime();
 
             if (Generated)
             {
@@ -134,6 +146,37 @@ namespace MCarmada.World
             return true;
         }
 
+        /// <summary>
+        /// Intended for player-changed blocks
+        /// </summary>
+        internal bool ChangeBlock(int x, int y, int z, Block block, Player changer)
+        {
+            if (!IsValidBlock(x, y, z))
+            {
+                return false;
+            }
+
+            Block former = GetBlock(x, y, z);
+            Block below = GetBlock(x, y - 1, z);
+            if (BlockConfig.IsBlockSlab(block) && BlockConfig.IsBlockSlab(below))
+            {
+                Packet reset = new Packet(PacketType.Header.ServerSetBlock);
+                reset.Write((short) x);
+                reset.Write((short) y);
+                reset.Write((short) z);
+                reset.Write(former);
+                changer.Send(reset);
+
+                SetBlock(x, y - 1, z, BlockConfig.GetFullSlabType(block));
+
+                return true;
+            }
+
+            SetBlock(x, y, z, block);
+
+            return true;
+        }
+
         public Block GetBlock(int x, int y, int z)
         {
             if (!IsValidBlock(x, y, z))
@@ -141,6 +184,7 @@ namespace MCarmada.World
                 return 0;
             }
 
+            AccessedTime = TimeUtil.GetUnixTime();
             return Blocks[(y * Height + z) * Width + x];
         }
 

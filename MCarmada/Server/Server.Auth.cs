@@ -42,8 +42,6 @@ namespace MCarmada.Server
 
 	        string key = sb.ToString();
 
-            logger.Info(key + " == " + playerKey);
-
 	        return (key.ToLower().Equals(playerKey.ToLower()));
 	    }
 	}

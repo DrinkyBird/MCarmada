@@ -85,6 +85,8 @@ namespace MCarmada.World
         }
 
         public static readonly Dictionary<Block, Block> CpeFallbacks = new Dictionary<Block, Block>();
+        private static readonly Dictionary<Block, bool> IsSlab = new Dictionary<Block, bool>();
+        private static readonly Dictionary<Block, Block> FullSlabType = new Dictionary<Block, Block>();
 
         static BlockConfig()
         {
@@ -104,6 +106,32 @@ namespace MCarmada.World
             CpeFallbacks[Block.Pillar] = Block.WhiteWool;
             CpeFallbacks[Block.Crate] = Block.Wood;
             CpeFallbacks[Block.StoneBricks] = Block.Stone;
+
+            IsSlab[Block.Slab] = true;
+            IsSlab[Block.CobblestoneSlab] = true;
+
+            FullSlabType[Block.Slab] = Block.DoubleSlab;
+            FullSlabType[Block.CobblestoneSlab] = Block.Cobblestone;
+        }
+
+        public static bool IsBlockSlab(Block block)
+        {
+            if (!IsSlab.ContainsKey(block))
+            {
+                return false;
+            }
+
+            return IsSlab[block];
+        }
+
+        public static Block GetFullSlabType(Block block)
+        {
+            if (!IsSlab.ContainsKey(block))
+            {
+                return block;
+            }
+
+            return FullSlabType[block];
         }
     }
 }

@@ -16,5 +16,10 @@ namespace MCarmada.Utils
         {
             return (double) DateTime.Now.Ticks / (double) TimeSpan.TicksPerMillisecond;
         }
+
+        public static int GetUnixTime()
+        {
+            return (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        }
     }
 }

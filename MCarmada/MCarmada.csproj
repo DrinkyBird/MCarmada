@@ -85,6 +85,9 @@
     <Compile Include="Commands\CommandClickDistance.cs" />
     <Compile Include="Commands\CommandExtensions.cs" />
     <Compile Include="Commands\CommandManager.cs" />
+    <Compile Include="Commands\CommandOp.cs" />
+    <Compile Include="Commands\CommandDeop.cs" />
+    <Compile Include="Commands\CommandWhitelist.cs" />
     <Compile Include="Cpe\CpeExtension.cs" />
     <Compile Include="Network\ClientConnection.cs" />
     <Compile Include="Network\ILevelCompressor.cs" />

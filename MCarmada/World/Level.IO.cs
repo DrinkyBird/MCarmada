@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Extensions.Data;
 using fNbt;
+using MCarmada.Cpe;
 using MCarmada.World.Generation;
 
 namespace MCarmada.World
@@ -24,19 +23,31 @@ namespace MCarmada.World
 
             var classicWorld = new NbtCompound("ClassicWorld");
             classicWorld.Add(new NbtByte("FormatVersion", CLASSICWORLD_VERSION));
+            classicWorld.Add(new NbtString("Name", Name));
             classicWorld.Add(new NbtShort("X", Width));
             classicWorld.Add(new NbtShort("Y", Depth));
             classicWorld.Add(new NbtShort("Z", Height));
             classicWorld.Add(new NbtByteArray("UUID", Guid.ToByteArray()));
+            if (CreationTime != 0) classicWorld.Add(new NbtLong("TimeCreated", (int) CreationTime));
+            if (ModificationTime != 0) classicWorld.Add(new NbtLong("LastModified", (int) ModificationTime));
+            if (AccessedTime != 0) classicWorld.Add(new NbtLong("LastAccessed", (int) AccessedTime));
 
             classicWorld.Add(new NbtByteArray("BlockArray", blocks));
 
+            var mapGenerator = new NbtCompound("MapGenerator");
+            mapGenerator.Add(new NbtString("Software", "MCarmada"));
+            mapGenerator.Add(new NbtString("MapGeneratorName", WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key));
+            classicWorld.Add(mapGenerator);
+
             var spawn = new NbtCompound("Spawn");
-            spawn.Add(new NbtShort("X", (short)(Width / 2)));
-            spawn.Add(new NbtShort("Y", (short)(Depth / 2)));
-            spawn.Add(new NbtShort("Z", (short)(Height / 2)));
+            BlockPos spawnPos = GetPlayerSpawn();
+            spawn.Add(new NbtShort("X", (short) spawnPos.X));
+            spawn.Add(new NbtShort("Y", (short) spawnPos.Y));
+            spawn.Add(new NbtShort("Z", (short) spawnPos.Z));
 
             classicWorld.Add(spawn);
+
+            var metadata = new NbtCompound("Metadata");
 
             var mcaData = new NbtCompound("MCarmada");
             mcaData.Add(new NbtLong("BlockArrayHash", (long)XXHash.XXH64(blocks)));
@@ -61,7 +72,32 @@ namespace MCarmada.World
             mcaData.Add(sp);
             mcaData.Add(ticks);
 
-            classicWorld.Add(mcaData);
+            var cpe = new NbtCompound("CPE");
+
+            var customBlocks = new NbtCompound("CustomBlocks");
+            customBlocks.Add(new NbtInt("ExtensionVersion", Server.Server.GetExtension(CpeExtension.CustomBlocks).Version));
+            customBlocks.Add(new NbtShort("SupportLevel", 1));
+
+            byte[] fallback = new byte[256];
+            for (int i = 0; i < fallback.Length; i++)
+            {
+                if (BlockConfig.CpeFallbacks.ContainsKey((Block) i))
+                {
+                    fallback[i] = (byte) BlockConfig.CpeFallbacks[(Block) i];
+                }
+                else
+                {
+                    fallback[i] = (byte) i;
+                }
+            }
+            customBlocks.Add(new NbtByteArray("Fallback", fallback));
+
+            cpe.Add(customBlocks);
+
+            metadata.Add(cpe);
+            metadata.Add(mcaData);
+
+            classicWorld.Add(metadata);
 
             Directory.CreateDirectory(outDir);
             string file = Path.Combine(outDir, "world.cw");
@@ -101,6 +137,9 @@ namespace MCarmada.World
             string generator = String.Empty;
             ulong tick = 0;
             List<ScheduledTick> ticks = new List<ScheduledTick>();
+            int creationTime = root.Contains("TimeCreated") ? (int) root["TimeCreated"].LongValue : 0;
+            int modifyTime = root.Contains("LastModified") ? (int) root["LastModified"].LongValue : 0;
+            int accessTime = root.Contains("LastAccessed") ? (int) root["LastAccessed"].LongValue : 0;
 
             byte[] blockBytes = root["BlockArray"].ByteArrayValue;
             Block[] blocks = new Block[blockBytes.Length];
@@ -117,41 +156,53 @@ namespace MCarmada.World
                 short spawnZ = spawn["Z"].ShortValue;
             }
 
-            if (root.Contains("MCarmada"))
+            if (root.Contains("Metadata"))
             {
-                NbtCompound mca = root.Get<NbtCompound>("MCarmada");
+                var metadata = root.Get<NbtCompound>("Metadata");
 
-                ulong hash = (ulong) mca["BlockArrayHash"].LongValue;
-
-                if (XXHash.XXH64(blockBytes) != hash)
+                if (metadata.Contains("MCarmada"))
                 {
-                    throw new InvalidDataException("Blocks hash mismatch!");
-                }
+                    NbtCompound mca = metadata.Get<NbtCompound>("MCarmada");
 
-                generator = mca["GeneratorName"].StringValue;
-                seed = mca["LevelSeed"].IntValue;
-                tick = (ulong) mca["LevelTick"].LongValue;
+                    ulong hash = (ulong)mca["BlockArrayHash"].LongValue;
 
-                NbtList tickTags = mca.Get<NbtList>("ScheduledTicks");
-                for (int i = 0; i < tickTags.Count; i++)
-                {
-                    NbtCompound compound = tickTags.Get<NbtCompound>(i);
-
-                    ScheduledTick st = new ScheduledTick()
+                    if (XXHash.XXH64(blockBytes) != hash)
                     {
-                        X = compound["X"].IntValue,
-                        Y = compound["Y"].IntValue,
-                        Z = compound["Z"].IntValue,
-                        Timing = (TickTiming) compound["Timing"].ByteValue,
-                        Event = (TickEvent) compound["Event"].ByteValue,
-                        Tick = (ulong) compound["When"].LongValue
-                    };
+                        throw new InvalidDataException("Blocks hash mismatch!");
+                    }
 
-                    ticks.Add(st);
+                    generator = mca["GeneratorName"].StringValue;
+                    seed = mca["LevelSeed"].IntValue;
+                    tick = (ulong)mca["LevelTick"].LongValue;
+
+                    NbtList tickTags = mca.Get<NbtList>("ScheduledTicks");
+                    for (int i = 0; i < tickTags.Count; i++)
+                    {
+                        NbtCompound compound = tickTags.Get<NbtCompound>(i);
+
+                        ScheduledTick st = new ScheduledTick()
+                        {
+                            X = compound["X"].IntValue,
+                            Y = compound["Y"].IntValue,
+                            Z = compound["Z"].IntValue,
+                            Timing = (TickTiming)compound["Timing"].ByteValue,
+                            Event = (TickEvent)compound["Event"].ByteValue,
+                            Tick = (ulong)compound["When"].LongValue
+                        };
+
+                        ticks.Add(st);
+                    }
                 }
             }
 
-            Level lvl = new Level(server, settings, width, depth, height, blocks, seed, generator, tick, ticks);
+            Level lvl = new Level(server, settings, width, depth, height, blocks, seed, generator, tick, ticks)
+            {
+                Guid = guid,
+                CreationTime = creationTime,
+                ModificationTime = modifyTime,
+                AccessedTime = accessTime
+            };
+
             return lvl;
         }
     }

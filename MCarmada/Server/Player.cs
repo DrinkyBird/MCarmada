@@ -42,7 +42,16 @@ namespace MCarmada.Server
 
         public int CpeBlockSupportLevel { get; private set; }
 
-        public bool IsOp = true;
+        private bool _isOp = false;
+        public bool IsOp
+        {
+            get { return _isOp; }
+            set
+            {
+                _isOp = value;
+                Send(new Packet(PacketType.Header.SetUserType).Write((byte) (_isOp ? 0x64 : 0x00)));
+            }
+        }
 
         private float _clickDistance = 5.0f;
         public float ClickDistance
@@ -175,7 +184,7 @@ namespace MCarmada.Server
 
                 server.PluginManager.OnPlayerChangeBlock(this, x, y, z, oldBlock, newBlock);
 
-                level.SetBlock(x, y, z, newBlock);
+                level.ChangeBlock(x, y, z, newBlock, this);
             }
             else if (packet.Type == PacketType.Header.Message)
             {
@@ -184,6 +193,7 @@ namespace MCarmada.Server
 
                 if (message.StartsWith("/"))
                 {
+                    logger.Info("Player issued command " + message);
                     server.CommandManager.Execute(this, message);
                     return;
                 }

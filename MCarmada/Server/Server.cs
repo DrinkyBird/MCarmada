@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using MCarmada.Api;
 using MCarmada.Commands;
 using MCarmada.Cpe;
@@ -43,6 +44,8 @@ namespace MCarmada.Server
 
         internal PluginManager PluginManager { get; private set; }
         internal CommandManager CommandManager { get; private set; }
+
+        private Thread heartbeatThread;
 
         public static readonly CpeExtension[] CPE_EXTENSIONS =
         {
@@ -96,6 +99,7 @@ namespace MCarmada.Server
                 try
                 {
                     level = Level.Load(this, worldSettings, path);
+                    logger.Info("Loaded world.");
 
                     return true;
                 }
@@ -142,7 +146,15 @@ namespace MCarmada.Server
             }
 
             UpdateConsoleTitle();
-            SendHeartbeat();
+
+            if ((CurrentTick - lastHeartbeat > 45 * 20 || lastHeartbeat == 0) && Program.Instance.Settings.Broadcast)
+            {
+                lastHeartbeat = CurrentTick;
+
+                heartbeatThread = new Thread(SendHeartbeat);
+                heartbeatThread.Name = "Heartbeat Thread";
+                heartbeatThread.Start();
+            }
 
             level.Tick();
 
@@ -259,6 +271,16 @@ namespace MCarmada.Server
             }
         }
 
+        public void BroadcastOpEvent(Player op, string ev)
+        {
+            logger.Info("[" + op.Name + ": " + ev + "]");
+            op.SendMessage("&f" + ev);
+            foreach (var p in players.Where(x => (x != null && x.Name != op.Name && x.IsOp)))
+            {
+                p.SendMessage("&7[" + op.Name + ": " + ev + "]");
+            }
+        }
+
         public int GetOnlinePlayers()
         {
             int num = 0;
@@ -300,6 +322,14 @@ namespace MCarmada.Server
             }
         }
 
+        internal void UpdatePlayerOpStatus()
+        {
+            foreach (var player in players.Where(x => x != null))
+            {
+                player.IsOp = OpList.Contains(player.Name);
+            }
+        }
+
         private void UpdateConsoleTitle()
         {
             Console.Title = "MCarmada - " + GetOnlinePlayers() + " players";
@@ -320,6 +350,19 @@ namespace MCarmada.Server
             SaveLevel();
 
             listener.Dispose();
+        }
+
+        public static CpeExtension GetExtension(string name)
+        {
+            foreach (var extension in CPE_EXTENSIONS)
+            {
+                if (extension.Name == name)
+                {
+                    return extension;
+                }
+            }
+
+            return null;
         }
     }
 }

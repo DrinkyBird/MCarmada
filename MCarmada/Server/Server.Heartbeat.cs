@@ -17,13 +17,6 @@ namespace MCarmada.Server
                 return;
             }
 
-            if (CurrentTick - lastHeartbeat < 45 * 20 && lastHeartbeat != 0)
-            {
-                return;
-            }
-
-            lastHeartbeat = CurrentTick;
-
             string html = string.Empty;
             string url = @"https://classicube.net/server/heartbeat/?";
             url += "name=" + Uri.EscapeDataString(ServerName) + "&";
@@ -32,12 +25,13 @@ namespace MCarmada.Server
             url += "max=" + players.Length + "&";
             url += "public=" + Program.Instance.Settings.Public + "&";
             url += "salt=" + Salt + "&";
-            url += "software=" + Uri.EscapeDataString(Program.FullName) + "&";
+            url += "software=" + Uri.EscapeDataString(Program.FullName);
 
-            logger.Info("Sending heartbeat: " + url);
+            logger.Debug("Sending heartbeat: " + url);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.AutomaticDecompression = DecompressionMethods.GZip;
+            request.UserAgent = Program.FullName;
 
             try
             {

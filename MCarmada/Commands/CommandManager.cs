@@ -61,6 +61,9 @@ namespace MCarmada.Commands
         {
             AddCommand("exts", new CommandExtensions());
             AddCommand("cd", new CommandClickDistance());
+            AddCommand("op", new CommandOp());
+            AddCommand("deop", new CommandDeop());
+            AddCommand("whitelist", new CommandWhitelist());
         }
     }
 }

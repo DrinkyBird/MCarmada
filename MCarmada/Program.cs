@@ -39,7 +39,7 @@ namespace MCarmada
             new Program();
         }
 
-        private Server.Server server;
+        public Server.Server Server { get; private set; }
         private bool running = true;
         public Settings Settings;
 
@@ -63,7 +63,7 @@ namespace MCarmada
             }
 
             Settings = Settings.Load();
-            server = new Server.Server(Settings.Port);
+            Server = new Server.Server(Settings.Port);
 
             return true;
         }
@@ -80,7 +80,7 @@ namespace MCarmada
 
         public void Tick()
         {
-            server.Tick();
+            Server.Tick();
         }
 
         private void Shutdown(object sender, EventArgs e)
@@ -88,9 +88,9 @@ namespace MCarmada
             running = false;
             logger.Info("Shutting down.....");
 
-            if (server != null)
+            if (Server != null)
             {
-                server.Dispose();
+                Server.Dispose();
             }
         }
 
