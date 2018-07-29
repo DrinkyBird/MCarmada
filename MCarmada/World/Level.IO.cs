@@ -173,11 +173,11 @@ namespace MCarmada.World
             int modifyTime = root.Contains("LastModified") ? (int) root["LastModified"].LongValue : 0;
             int accessTime = root.Contains("LastAccessed") ? (int) root["LastAccessed"].LongValue : 0;
             WeatherType weather = WeatherType.Clear;
-            EnvColor skyColor = EnvColor.CreateEmpty();
-            EnvColor cloudColor = EnvColor.CreateEmpty();
-            EnvColor fogColor = EnvColor.CreateEmpty();
-            EnvColor ambientColor = EnvColor.CreateEmpty();
-            EnvColor diffuseColor = EnvColor.CreateEmpty();
+            EnvColor skyColor = EnvColor.CreateDefault();
+            EnvColor cloudColor = EnvColor.CreateDefault();
+            EnvColor fogColor = EnvColor.CreateDefault();
+            EnvColor ambientColor = EnvColor.CreateDefault();
+            EnvColor diffuseColor = EnvColor.CreateDefault();
 
             byte[] blockBytes = root["BlockArray"].ByteArrayValue;
             Block[] blocks = new Block[blockBytes.Length];
@@ -262,7 +262,13 @@ namespace MCarmada.World
                 CreationTime = creationTime,
                 ModificationTime = modifyTime,
                 AccessedTime = accessTime,
-                Weather = weather
+                Weather = weather,
+                
+                SkyColour = skyColor,
+                CloudColour = cloudColor,
+                FogColour = fogColor,
+                AmbientColour = ambientColor,
+                DiffuseColour = diffuseColor
             };
 
             return lvl;

@@ -48,11 +48,11 @@ namespace MCarmada.World
         public int ModificationTime { get; private set; }
         public int AccessedTime { get; private set; }
 
-        public EnvColor SkyColour = new EnvColor(-1, -1, -1);
-        public EnvColor CloudColour = new EnvColor(-1, -1, -1);
-        public EnvColor FogColour = new EnvColor(-1, -1, -1);
-        public EnvColor AmbientColour = new EnvColor(-1, -1, -1);
-        public EnvColor DiffuseColour = new EnvColor(-1, -1, -1);
+        public EnvColor SkyColour = EnvColor.CreateDefault();
+        public EnvColor CloudColour = EnvColor.CreateDefault();
+        public EnvColor FogColour = EnvColor.CreateDefault();
+        public EnvColor AmbientColour = EnvColor.CreateDefault();
+        public EnvColor DiffuseColour = EnvColor.CreateDefault();
 
         private WeatherType _weather = WeatherType.Clear;
         public WeatherType Weather

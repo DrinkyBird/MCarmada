@@ -57,7 +57,7 @@ namespace MCarmada.World
                 };
             }
 
-            public static EnvColor CreateEmpty()
+            public static EnvColor CreateDefault()
             {
                 return new EnvColor(-1, -1, -1);
             }
@@ -66,13 +66,13 @@ namespace MCarmada.World
             {
                 if (!c.Contains(name))
                 {
-                    return CreateEmpty();
+                    return CreateDefault();
                 }
 
                 var tag = c.Get<NbtCompound>(name);
                 if (!tag.Contains("R") || !tag.Contains("G") || !tag.Contains("B"))
                 {
-                    return CreateEmpty();
+                    return CreateDefault();
                 }
 
                 return new EnvColor(
