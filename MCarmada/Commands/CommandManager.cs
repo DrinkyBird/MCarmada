@@ -64,6 +64,8 @@ namespace MCarmada.Commands
             AddCommand("op", new CommandOp());
             AddCommand("deop", new CommandDeop());
             AddCommand("whitelist", new CommandWhitelist());
+            AddCommand("weather", new CommandWeather());
+            AddCommand("env", new CommandEnv());
         }
     }
 }

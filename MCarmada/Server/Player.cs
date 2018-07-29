@@ -299,6 +299,9 @@ namespace MCarmada.Server
 
             server.BroadcastMessage(Name + " has connected.");
 
+            Send(new Packet(PacketType.Header.CpeEnvWeatherSetType).Write((byte) server.level.Weather));
+            server.level.InformPlayerOfEnvironment(this);
+
             foreach (var player in server.players)
             {
                 if (player == null)

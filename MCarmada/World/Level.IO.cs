@@ -20,42 +20,47 @@ namespace MCarmada.World
             }
 
             byte[] blocks = BlocksAsByteArray();
+            BlockPos spawnPos = GetPlayerSpawn();
 
-            var classicWorld = new NbtCompound("ClassicWorld");
-            classicWorld.Add(new NbtByte("FormatVersion", CLASSICWORLD_VERSION));
-            classicWorld.Add(new NbtString("Name", Name));
-            classicWorld.Add(new NbtShort("X", Width));
-            classicWorld.Add(new NbtShort("Y", Depth));
-            classicWorld.Add(new NbtShort("Z", Height));
-            classicWorld.Add(new NbtByteArray("UUID", Guid.ToByteArray()));
+            var classicWorld = new NbtCompound("ClassicWorld")
+            {
+                new NbtByte("FormatVersion", CLASSICWORLD_VERSION),
+                new NbtString("Name", Name),
+                new NbtShort("X", Width),
+                new NbtShort("Y", Depth),
+                new NbtShort("Z", Height),
+                new NbtByteArray("UUID", Guid.ToByteArray()),
+                new NbtByteArray("BlockArray", blocks),
+
+                new NbtCompound("Spawn")
+                {
+                    new NbtShort("X", (short) spawnPos.X),
+                    new NbtShort("Y", (short) spawnPos.Y),
+                    new NbtShort("Z", (short) spawnPos.Z)
+                },
+
+                new NbtCompound("MapGenerator")
+                {
+                    new NbtString("Software", "MCarmada"),
+                    new NbtString("MapGeneratorName", WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key)
+                }
+            };
+
             if (CreationTime != 0) classicWorld.Add(new NbtLong("TimeCreated", (int) CreationTime));
             if (ModificationTime != 0) classicWorld.Add(new NbtLong("LastModified", (int) ModificationTime));
             if (AccessedTime != 0) classicWorld.Add(new NbtLong("LastAccessed", (int) AccessedTime));
 
-            classicWorld.Add(new NbtByteArray("BlockArray", blocks));
-
-            var mapGenerator = new NbtCompound("MapGenerator");
-            mapGenerator.Add(new NbtString("Software", "MCarmada"));
-            mapGenerator.Add(new NbtString("MapGeneratorName", WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key));
-            classicWorld.Add(mapGenerator);
-
-            var spawn = new NbtCompound("Spawn");
-            BlockPos spawnPos = GetPlayerSpawn();
-            spawn.Add(new NbtShort("X", (short) spawnPos.X));
-            spawn.Add(new NbtShort("Y", (short) spawnPos.Y));
-            spawn.Add(new NbtShort("Z", (short) spawnPos.Z));
-
-            classicWorld.Add(spawn);
-
             var metadata = new NbtCompound("Metadata");
 
-            var mcaData = new NbtCompound("MCarmada");
-            mcaData.Add(new NbtLong("BlockArrayHash", (long)XXHash.XXH64(blocks)));
-            mcaData.Add(new NbtLong("LevelTick", (long)LevelTick));
-            mcaData.Add(new NbtInt("LevelSeed", Seed));
-            mcaData.Add(new NbtString("SoftwareVersion", Assembly.GetCallingAssembly().GetName().Version.ToString()));
-            mcaData.Add(new NbtString("GeneratorName", WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key));
-            mcaData.Add(new NbtString("GeneratorClassName", generator.GetType().FullName));
+            var mcaData = new NbtCompound("MCarmada")
+            {
+                new NbtLong("BlockArrayHash", (long)XXHash.XXH64(blocks)),
+                new NbtLong("LevelTick", (long)LevelTick),
+                new NbtInt("LevelSeed", Seed),
+                new NbtString("SoftwareVersion", Assembly.GetCallingAssembly().GetName().Version.ToString()),
+                new NbtString("GeneratorName", WorldGenerator.Generators.FirstOrDefault(x => x.Value == generator).Key),
+                new NbtString("GeneratorClassName", generator.GetType().FullName)
+            };
 
             var ticks = new NbtList("ScheduledTicks", NbtTagType.Compound);
             foreach (var tick in scheduledTicks)
@@ -66,17 +71,23 @@ namespace MCarmada.World
             var sp = new NbtCompound("Players");
             foreach (var player in savedPlayers)
             {
+                // mitigate a crash bug
+                if (sp.Contains(player.Name))
+                {
+                    continue;
+                }
+
                 sp.Add(player.ToCompound());
             }
 
             mcaData.Add(sp);
             mcaData.Add(ticks);
 
-            var cpe = new NbtCompound("CPE");
-
-            var customBlocks = new NbtCompound("CustomBlocks");
-            customBlocks.Add(new NbtInt("ExtensionVersion", Server.Server.GetExtension(CpeExtension.CustomBlocks).Version));
-            customBlocks.Add(new NbtShort("SupportLevel", 1));
+            var customBlocks = new NbtCompound("CustomBlocks")
+            {
+                new NbtInt("ExtensionVersion", Server.Server.GetExtension(CpeExtension.CustomBlocks).Version),
+                new NbtShort("SupportLevel", 1)
+            };
 
             byte[] fallback = new byte[256];
             for (int i = 0; i < fallback.Length; i++)
@@ -92,7 +103,28 @@ namespace MCarmada.World
             }
             customBlocks.Add(new NbtByteArray("Fallback", fallback));
 
-            cpe.Add(customBlocks);
+            var weatherType = new NbtCompound("EnvWeatherType")
+            {
+                new NbtInt("ExtensionVersion", Server.Server.GetExtension(CpeExtension.EnvWeatherType).Version),
+                new NbtByte("WeatherType", (byte) Weather),
+            };
+
+            var cpe = new NbtCompound("CPE")
+            {
+                customBlocks,
+                weatherType,
+
+                new NbtCompound("EnvColors")
+                {
+                    new NbtInt("ExtensionVersion", Server.Server.GetExtension(CpeExtension.EnvColors).Version),
+
+                    SkyColour.ToCompound("Sky"),
+                    CloudColour.ToCompound("Cloud"),
+                    FogColour.ToCompound("Fog"),
+                    AmbientColour.ToCompound("Ambient"),
+                    DiffuseColour.ToCompound("Sunlight")
+                }
+            };
 
             metadata.Add(cpe);
             metadata.Add(mcaData);
@@ -140,6 +172,12 @@ namespace MCarmada.World
             int creationTime = root.Contains("TimeCreated") ? (int) root["TimeCreated"].LongValue : 0;
             int modifyTime = root.Contains("LastModified") ? (int) root["LastModified"].LongValue : 0;
             int accessTime = root.Contains("LastAccessed") ? (int) root["LastAccessed"].LongValue : 0;
+            WeatherType weather = WeatherType.Clear;
+            EnvColor skyColor = EnvColor.CreateEmpty();
+            EnvColor cloudColor = EnvColor.CreateEmpty();
+            EnvColor fogColor = EnvColor.CreateEmpty();
+            EnvColor ambientColor = EnvColor.CreateEmpty();
+            EnvColor diffuseColor = EnvColor.CreateEmpty();
 
             byte[] blockBytes = root["BlockArray"].ByteArrayValue;
             Block[] blocks = new Block[blockBytes.Length];
@@ -193,6 +231,29 @@ namespace MCarmada.World
                         ticks.Add(st);
                     }
                 }
+
+                if (metadata.Contains("CPE"))
+                {
+                    var cpe = metadata.Get<NbtCompound>("CPE");
+
+                    if (cpe.Contains("EnvWeatherType"))
+                    {
+                        var envWeatherType = cpe.Get<NbtCompound>("EnvWeatherType");
+
+                        weather = (WeatherType) envWeatherType["WeatherType"].ByteValue;
+                    }
+
+                    if (cpe.Contains("EnvColors"))
+                    {
+                        var envColors = cpe.Get<NbtCompound>("EnvColors");
+
+                        skyColor = EnvColor.Get(envColors, "Sky");
+                        cloudColor = EnvColor.Get(envColors, "Cloud");
+                        fogColor = EnvColor.Get(envColors, "Fog");
+                        ambientColor = EnvColor.Get(envColors, "Ambient");
+                        diffuseColor = EnvColor.Get(envColors, "Sunlight");
+                    }
+                }
             }
 
             Level lvl = new Level(server, settings, width, depth, height, blocks, seed, generator, tick, ticks)
@@ -200,7 +261,8 @@ namespace MCarmada.World
                 Guid = guid,
                 CreationTime = creationTime,
                 ModificationTime = modifyTime,
-                AccessedTime = accessTime
+                AccessedTime = accessTime,
+                Weather = weather
             };
 
             return lvl;

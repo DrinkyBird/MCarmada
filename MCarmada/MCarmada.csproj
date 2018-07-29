@@ -74,6 +74,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
     <Reference Include="YamlDotNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\YamlDotNet.dll</HintPath>
@@ -88,6 +89,8 @@
     <Compile Include="Commands\CommandOp.cs" />
     <Compile Include="Commands\CommandDeop.cs" />
     <Compile Include="Commands\CommandWhitelist.cs" />
+    <Compile Include="Commands\CommandWeather.cs" />
+    <Compile Include="Commands\CommandEnv.cs" />
     <Compile Include="Cpe\CpeExtension.cs" />
     <Compile Include="Network\ClientConnection.cs" />
     <Compile Include="Network\ILevelCompressor.cs" />
@@ -130,6 +133,7 @@
     <Compile Include="World\Generation\WorldGenerator.cs" />
     <Compile Include="World\Level.Algos.cs" />
     <Compile Include="World\Level.cs" />
+    <Compile Include="World\Level.Enums.cs" />
     <Compile Include="World\Level.IO.cs" />
     <Compile Include="World\Level.Player.cs" />
     <Compile Include="World\Level.Tick.cs" />

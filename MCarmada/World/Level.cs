@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -46,6 +47,26 @@ namespace MCarmada.World
         public int CreationTime { get; private set; }
         public int ModificationTime { get; private set; }
         public int AccessedTime { get; private set; }
+
+        public EnvColor SkyColour = new EnvColor(-1, -1, -1);
+        public EnvColor CloudColour = new EnvColor(-1, -1, -1);
+        public EnvColor FogColour = new EnvColor(-1, -1, -1);
+        public EnvColor AmbientColour = new EnvColor(-1, -1, -1);
+        public EnvColor DiffuseColour = new EnvColor(-1, -1, -1);
+
+        private WeatherType _weather = WeatherType.Clear;
+        public WeatherType Weather
+        {
+            get { return _weather; }
+            set
+            {
+                _weather = value;
+
+                Packet p = new Packet(PacketType.Header.CpeEnvWeatherSetType);
+                p.Write((byte) _weather);
+                server.BroadcastPacket(p);
+            }
+        }
 
         public Level(Server.Server server, Settings.WorldSettings settings, short w,  short d, short h)
         {
@@ -224,6 +245,39 @@ namespace MCarmada.World
             }
 
             return output;
+        }
+
+        public void InformPlayerOfEnvironment(Player p)
+        {
+            Packet sky = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Sky);
+            SkyColour.Write(sky);
+            p.Send(sky);
+
+            Packet cloud = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Cloud);
+            CloudColour.Write(cloud);
+            p.Send(cloud);
+
+            Packet fog = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Fog);
+            FogColour.Write(fog);
+            p.Send(fog);
+
+            Packet ambient = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Ambient);
+            AmbientColour.Write(ambient);
+            p.Send(ambient);
+
+            Packet diffuse = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Diffuse);
+            DiffuseColour.Write(diffuse);
+            p.Send(diffuse);
+        }
+
+        public void InformEveryoneOfEnvironment()
+        {
+            foreach (var player in server.players)
+            {
+                if (player == null) continue;
+
+                InformPlayerOfEnvironment(player);
+            }
         }
     }
 }

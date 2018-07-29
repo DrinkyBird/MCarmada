@@ -74,6 +74,18 @@ namespace MCarmada.World
                 }
             }
 
+            if (Weather == WeatherType.Snowing && Rng.NextDouble() > 0.9f)
+            {
+                int x, y, z;
+                Block b;
+                    y = FindTopBlock(x = Rng.Next(Width), z = Rng.Next(Height));
+                
+                if (!((b = GetBlock(x, y + 1, z)) == Block.Snow || BlockConfig.IsBlockSlab(b) || !IsBlockSolid(b)))
+                {
+                    SetBlock(x, y + 1, z, Block.Snow);
+                }
+            }
+
             LevelTick++;
         }
 

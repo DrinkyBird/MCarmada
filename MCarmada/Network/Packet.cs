@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -108,6 +109,20 @@ namespace MCarmada.Network
             return this;
         }
 
+        public Packet Write(Color color, bool writeAlpha = false)
+        {
+            Write((byte) color.R);
+            Write((byte) color.G);
+            Write((byte) color.B);
+
+            if (writeAlpha)
+            {
+                Write((byte) color.A);
+            }
+
+            return this;
+        }
+
         public Packet WriteFixedPointPos(float x, float y, float z)
         {
             Write(FixedPoint.ToFixedPoint(x));
@@ -152,6 +167,16 @@ namespace MCarmada.Network
         public byte[] ReadByteArray()
         {
             return reader.ReadBytes(1024);
+        }
+
+        public Color ReadColor(bool readAlpha = false)
+        {
+            byte r = ReadByte();
+            byte g = ReadByte();
+            byte b = ReadByte();
+            byte a = readAlpha ? ReadByte() : (byte) 255;
+
+            return Color.FromArgb(r, g, b, a);
         }
 
         public byte[] GetBytes()

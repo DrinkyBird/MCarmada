@@ -40,6 +40,12 @@ namespace MCarmada.Network
 
             // CPE CustomBlocks
             CpeCustomBlockSupportLevel = 0x13,
+
+            // CPE EnvColors
+            CpeEnvSetColor = 0x19,
+
+            // CPE EnvWeatherType
+            CpeEnvWeatherSetType = 0x1F,
         }
 
         private static Dictionary<Header, int> PacketSizes = new Dictionary<Header, int>();
@@ -77,6 +83,12 @@ namespace MCarmada.Network
 
             // CPE CustomBlocks
             PacketSizes[Header.CpeCustomBlockSupportLevel] = 1;
+
+            // CPE EnvColors
+            PacketSizes[Header.CpeEnvSetColor] = 7;
+
+            // CPE EnvWeatherType
+            PacketSizes[Header.CpeEnvWeatherSetType] = 1;
         }
 
         public static int GetPacketSize(Header packet)
