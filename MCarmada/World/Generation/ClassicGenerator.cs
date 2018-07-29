@@ -77,6 +77,11 @@ namespace MCarmada.World.Generation
 
                 heightResult /= 2;
 
+                if (heightResult < 0)
+                {
+                    heightResult *= 0.8;
+                }
+
                 heightMap[x + z * level.Width] = (int) (heightResult + waterLevel);
 
                 generated++;
@@ -346,7 +351,7 @@ namespace MCarmada.World.Generation
         private void GeneratePlants()
         {
             int numFlowers = (level.Width * level.Height) / 3000;
-            int numShrooms = (level.Width * level.Height) / 2000;
+            int numShrooms = (level.Width * level.Depth * level.Height) / 2000;
             int numTrees = (level.Width * level.Height) / 4000;
 
             int total = numFlowers + numShrooms + numTrees;
@@ -399,7 +404,6 @@ namespace MCarmada.World.Generation
                 int patchX = level.Rng.Next(0, level.Width);
                 int patchY = level.Rng.Next(0, level.Depth);
                 int patchZ = level.Rng.Next(0, level.Height);
-
 
                 for (int j = 0; j < 20; j++)
                 {
