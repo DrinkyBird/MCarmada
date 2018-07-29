@@ -22,5 +22,15 @@ namespace MCarmada.World
         {
             return "[" + X + ", " + Y + ", " + Z + "]";
         }
+
+        public BlockPos Add(int n)
+        {
+            return new BlockPos(X + n, Y + n, Z + n);
+        }
+
+        public static BlockPos operator +(BlockPos p, int n)
+        {
+            return p.Add(n);
+        }
     }
 }

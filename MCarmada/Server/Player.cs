@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -17,7 +18,7 @@ using NLog;
 
 namespace MCarmada.Server
 {
-    public class Player : ITickable
+    public partial class Player : ITickable
     {
         private ClientConnection connection;
         private Server server;
@@ -41,6 +42,8 @@ namespace MCarmada.Server
         private string messageBuffer = String.Empty;
 
         public int CpeBlockSupportLevel { get; private set; }
+
+        private bool[] cuboids = new bool[256];
 
         private bool _isOp = false;
         public bool IsOp
@@ -155,6 +158,19 @@ namespace MCarmada.Server
                     correction.Write(oldBlock);
                     Send(correction);
 
+                    return;
+                }
+
+                if (editing)
+                {
+                    Packet correction = new Packet(PacketType.Header.ServerSetBlock);
+                    correction.Write((short)x);
+                    correction.Write((short)y);
+                    correction.Write((short)z);
+                    correction.Write(oldBlock);
+                    Send(correction);
+
+                    EditorClickBlock(x, y, z);
                     return;
                 }
 
@@ -410,6 +426,70 @@ namespace MCarmada.Server
             }
 
             return false;
+        }
+
+        public void CreateSelectionCuboid(byte id, string label, short sx, short sy, short sz, short ex, short ey, short ez, byte r,
+            byte g, byte b, byte a)
+        {
+            if (!SupportsExtension(CpeExtension.SelectionCuboid))
+            {
+                return;
+            }
+
+            if (cuboids[id])
+            {
+                RemoveSelection(id);
+            }
+
+            Packet p = new Packet(PacketType.Header.MakeSelection);
+            p.Write(id);
+            p.Write(label);
+            p.Write(sx);
+            p.Write(sy);
+            p.Write(sz);
+            p.Write(ex);
+            p.Write(ey);
+            p.Write(ez);
+            p.Write((short)r);
+            p.Write((short)g);
+            p.Write((short)b);
+            p.Write((short)a);
+
+            Send(p);
+        }
+
+        public void RemoveSelection(byte id)
+        {
+            if (!SupportsExtension(CpeExtension.SelectionCuboid))
+            {
+                return;
+            }
+
+            if (!cuboids[id])
+            {
+                return;
+            }
+
+            Packet p = new Packet(PacketType.Header.RemoveSelection);
+            p.Write(id);
+            Send(p);
+            cuboids[id] = false;
+        }
+
+        public void CreateSelectionCuboid(byte id, string label, BlockPos start, BlockPos end, byte r, byte g, byte b,
+            byte a)
+        {
+            CreateSelectionCuboid(id, label, (short)start.X, (short)start.Y, (short)start.Z, (short)end.X, (short)end.Y, (short)end.Z, r, g, b, a);
+        }
+
+        public void CreateSelectionCuboid(byte id, string label, short sx, short sy, short sz, short ex, short ey, short ez, Color color)
+        {
+            CreateSelectionCuboid(id, label, sx, sy, sz, ex, ey, ez, color.R, color.G, color.B, color.A);
+        }
+
+        public void CreateSelectionCuboid(byte id, string label, BlockPos start, BlockPos end, Color color)
+        {
+            CreateSelectionCuboid(id, label, (short)start.X, (short)start.Y, (short)start.Z, (short)end.X, (short)end.Y, (short)end.Z, color.R, color.G, color.B, color.A);
         }
     }
 }

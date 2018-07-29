@@ -44,6 +44,10 @@ namespace MCarmada.Network
             // CPE EnvColors
             CpeEnvSetColor = 0x19,
 
+            // CPE SelectionCuboid
+            MakeSelection = 0x1A,
+            RemoveSelection = 0x1B,
+
             // CPE EnvWeatherType
             CpeEnvWeatherSetType = 0x1F,
         }
@@ -86,6 +90,10 @@ namespace MCarmada.Network
 
             // CPE EnvColors
             PacketSizes[Header.CpeEnvSetColor] = 7;
+
+            // CPE SelectionCuboid
+            PacketSizes[Header.MakeSelection] = 85;
+            PacketSizes[Header.RemoveSelection] = 1;
 
             // CPE EnvWeatherType
             PacketSizes[Header.CpeEnvWeatherSetType] = 1;

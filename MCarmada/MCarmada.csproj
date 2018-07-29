@@ -91,6 +91,7 @@
     <Compile Include="Commands\CommandWhitelist.cs" />
     <Compile Include="Commands\CommandWeather.cs" />
     <Compile Include="Commands\CommandEnv.cs" />
+    <Compile Include="Commands\CommandEdit.cs" />
     <Compile Include="Cpe\CpeExtension.cs" />
     <Compile Include="Network\ClientConnection.cs" />
     <Compile Include="Network\ILevelCompressor.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="Server\MessageType.cs" />
     <Compile Include="Server\NameList.cs" />
     <Compile Include="Server\Player.cs" />
+    <Compile Include="Server\Player.Editor.cs" />
     <Compile Include="Server\Server.cs" />
     <Compile Include="Server\Server.Heartbeat.cs" />
     <Compile Include="Settings.cs" />
