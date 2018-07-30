@@ -54,6 +54,10 @@ namespace MCarmada.World
         public EnvColor AmbientColour = EnvColor.CreateDefault();
         public EnvColor DiffuseColour = EnvColor.CreateDefault();
 
+        public Block EdgeWaterBlock = Block.Water;
+        public Block EdgeSideBlock = Block.Bedrock;
+        public int EdgeHeight, EdgeDistance, CloudHeight;
+
         private WeatherType _weather = WeatherType.Clear;
         public WeatherType Weather
         {
@@ -76,6 +80,10 @@ namespace MCarmada.World
             Width = w;
             Depth = d;
             Height = h;
+
+            EdgeHeight = Depth / 2;
+            CloudHeight = Depth + 2;
+            EdgeDistance = 2;
 
             CreationTime = TimeUtil.GetUnixTime();
 
@@ -268,6 +276,12 @@ namespace MCarmada.World
             Packet diffuse = new Packet(PacketType.Header.CpeEnvSetColor).Write((byte) ColorType.Diffuse);
             DiffuseColour.Write(diffuse);
             p.Send(diffuse);
+
+            p.Send(new Packet(PacketType.Header.CpeSetMapEnvProperty).Write((byte) EnvProperty.EdgeBlock).Write((int) EdgeWaterBlock));
+            p.Send(new Packet(PacketType.Header.CpeSetMapEnvProperty).Write((byte) EnvProperty.EdgeHeight).Write((int) EdgeHeight));
+            p.Send(new Packet(PacketType.Header.CpeSetMapEnvProperty).Write((byte)EnvProperty.WaterLevelDistance).Write((int)-EdgeDistance));
+            p.Send(new Packet(PacketType.Header.CpeSetMapEnvProperty).Write((byte) EnvProperty.SideBlock).Write((int) EdgeSideBlock));
+            p.Send(new Packet(PacketType.Header.CpeSetMapEnvProperty).Write((byte) EnvProperty.CloudHeight).Write((int) CloudHeight));
         }
 
         public void InformEveryoneOfEnvironment()

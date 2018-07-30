@@ -50,6 +50,9 @@ namespace MCarmada.Network
 
             // CPE EnvWeatherType
             CpeEnvWeatherSetType = 0x1F,
+
+            // CPE EnvMapAspect
+            CpeSetMapEnvProperty = 0x29,
         }
 
         private static Dictionary<Header, int> PacketSizes = new Dictionary<Header, int>();
@@ -97,6 +100,9 @@ namespace MCarmada.Network
 
             // CPE EnvWeatherType
             PacketSizes[Header.CpeEnvWeatherSetType] = 1;
+
+            // CPE EnvMapAspect
+            PacketSizes[Header.CpeSetMapEnvProperty] = 5;
         }
 
         public static int GetPacketSize(Header packet)

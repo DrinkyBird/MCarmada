@@ -18,9 +18,14 @@ namespace MCarmada.World
             Snowing
         }
 
-        public enum ColorType
+        public enum ColorType : byte
         {
             Sky, Cloud, Fog, Ambient, Diffuse
+        }
+
+        public enum EnvProperty : byte
+        {
+            SideBlock, EdgeBlock, EdgeHeight, CloudHeight, MaxFog, CloudSpeed, WeatherSpeed, WeatherFade, UseExpFog, WaterLevelDistance
         }
 
         [StructLayout(LayoutKind.Sequential)]

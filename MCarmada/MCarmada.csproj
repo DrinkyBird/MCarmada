@@ -127,7 +127,10 @@
     <Compile Include="World\Generation\ClassicGenerator.cs" />
     <Compile Include="World\Generation\DebugGenerator.cs" />
     <Compile Include="World\Generation\FlatGenerator.cs" />
+    <Compile Include="World\Generation\IndevGenerator.cs" />
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
+    <Compile Include="World\Generation\Noise\NoiseOctavesIndev.cs" />
+    <Compile Include="World\Generation\Noise\NoisePerlinIndev.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplex.cs" />
     <Compile Include="World\Generation\Noise\OpenSimplexNoise.cs" />
     <Compile Include="World\Generation\NullGenerator.cs" />
