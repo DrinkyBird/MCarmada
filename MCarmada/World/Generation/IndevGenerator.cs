@@ -22,7 +22,7 @@ namespace MCarmada.World.Generation
         private Level level;
 
         private bool paradise = false;
-        private bool hell = false;
+        private bool hell = true;
         private bool woods = false;
         private bool island = false;
         private bool floating = true;
@@ -216,7 +216,7 @@ namespace MCarmada.World.Generation
                             i2++;
                         }
                     }
-
+                    
                     float xc = level.Width / 2f;
                     float zc = level.Height / 2f;
 
@@ -244,11 +244,11 @@ namespace MCarmada.World.Generation
                         {
                             if (flagGravel)
                             {
-                                b = Block.Gravel;
+                                b = hell ? Block.Grass : Block.Gravel;
                             }
                             else if (flagSand)
                             {
-                                b = Block.Sand;
+                                b = hell ? Block.Grass : Block.Sand;
                             } 
                             else if (y > var77)
                             {
@@ -289,7 +289,7 @@ namespace MCarmada.World.Generation
                         t++;
                         if (t == 0 && air)
                         {
-                            b = Block.Grass;
+                            b = hell ? Block.Dirt : Block.Grass;
                         } 
                         else if (t < 3)
                         {
@@ -318,7 +318,7 @@ namespace MCarmada.World.Generation
                 Block cb = level.GetBlock(x, 0, z);
                 if (cb == Block.Air)
                 {
-                    level.SetBlock(x, 0, z, Block.Water);
+                    level.SetBlock(x, 0, z, hell ? Block.Lava : Block.Water);
                 }
             }
         }
@@ -352,10 +352,9 @@ namespace MCarmada.World.Generation
 
                 level.EdgeWaterBlock = Block.LavaStill;
             }
-            else if (floating)
+            
+            if (floating)
             {
-                level.EdgeWaterBlock = Block.Water;
-                level.EdgeSideBlock = Block.Bedrock;
                 level.EdgeHeight = 1;
                 level.EdgeDistance = 2;
                 level.CloudHeight = (int)(level.Depth * 0.75);
@@ -522,8 +521,9 @@ namespace MCarmada.World.Generation
                         if (level.IsValidBlock(shroomX, 0, shroomZ))
                         {
                             Block below = level.GetBlock(shroomX, shroomY - 1, shroomZ);
+                            bool hellBlocks = hell & below == Block.Dirt;
 
-                            if (level.GetBlock(shroomX, shroomY, shroomZ) == 0 && below == Block.Stone)
+                            if (level.GetBlock(shroomX, shroomY, shroomZ) == 0 && (below == Block.Stone || hellBlocks))
                             {
                                 level.SetBlock(shroomX, shroomY, shroomZ, shroomType);
                             }
