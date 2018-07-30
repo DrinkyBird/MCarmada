@@ -269,7 +269,7 @@ namespace MCarmada.World.Generation
             }
 
             for (int x = 0; x < level.Width; x++)
-            for (int z = 0; z < level.Width; z++)
+            for (int z = 0; z < level.Height; z++)
             {
                 int t = -1;
                 bool air = true;
@@ -313,7 +313,7 @@ namespace MCarmada.World.Generation
             }
 
             for (int x = 0; x < level.Width; x++)
-            for (int z = 0; z < level.Width; z++)
+            for (int z = 0; z < level.Height; z++)
             {
                 Block cb = level.GetBlock(x, 0, z);
                 if (cb == Block.Air)
