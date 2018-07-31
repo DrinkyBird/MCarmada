@@ -22,8 +22,8 @@ namespace MCarmada.World.Generation
         private Level level;
 
         private bool paradise = false;
-        private bool hell = true;
-        private bool woods = false;
+        private bool hell = false;
+        private bool woods = true;
         private bool island = false;
         private bool floating = true;
 
@@ -97,7 +97,7 @@ namespace MCarmada.World.Generation
                     float f2 = (float) noiseGen5.Noise(x / 4.0f, z / 4.0f);
                     float f3 = (float) noiseGen6.Noise(x / 8.0f, z / 8.0f) / 8.0f;
                     f2 = f2 > 0.0F ? (float)(noiseGen3.Noise(x * 0.2571428f * 2.0f, z * 0.2571428f * 2.0f) * f3 / 4.0) : (float)(noiseGen4.Noise(x * 0.2571428f, z * 0.2571428f) * f3);
-                    i2 = (int)(f1 + 64.0f + f2);
+                    i2 = (int)(f1 + seaLevel + f2);
                 }
 
                 if ((float) noiseGen5.Noise(x, z) < 0f)
@@ -173,7 +173,7 @@ namespace MCarmada.World.Generation
                         i4 = Block.Dirt;
                     }
 
-                    else if (y < 64)
+                    else if (y < level.Depth / 2)
                     {
                         if (hell)
                         {
@@ -455,7 +455,7 @@ namespace MCarmada.World.Generation
         {
             int numFlowers = (level.Width * level.Height) / 3000;
             int numShrooms = (level.Width * level.Depth * level.Height) / 2000;
-            int numTrees = (level.Width * level.Height) / 4000;
+            int numTrees = (level.Width * level.Height) / (woods ? 1000 : 4000);
 
             int total = numFlowers + numShrooms + numTrees;
             int done = 0;
