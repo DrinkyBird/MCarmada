@@ -128,6 +128,7 @@
     <Compile Include="World\Generation\DebugGenerator.cs" />
     <Compile Include="World\Generation\FlatGenerator.cs" />
     <Compile Include="World\Generation\IndevGenerator.cs" />
+    <Compile Include="World\Generation\IsDubiousGenerator.cs" />
     <Compile Include="World\Generation\Noise\ClassicNoise.cs" />
     <Compile Include="World\Generation\Noise\NoiseOctavesIndev.cs" />
     <Compile Include="World\Generation\Noise\NoisePerlinIndev.cs" />
