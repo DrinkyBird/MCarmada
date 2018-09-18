@@ -68,7 +68,6 @@ namespace MCarmada.Server
             Settings settings = Program.Instance.Settings;
 
             players = new Player[Program.Instance.Settings.MaxPlayers];
-            listener = new Listener(this, port);
 
             CommandManager = new CommandManager();
             CommandManager.RegisterMainCommands();
@@ -84,6 +83,8 @@ namespace MCarmada.Server
 
             OpList = new NameList("operators.txt");
             Whitelist = new NameList("whitelist.txt");
+
+            listener = new Listener(this, port);
         }
 
         private bool AttemptLoadLevel()
