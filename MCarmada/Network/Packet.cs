@@ -94,6 +94,15 @@ namespace MCarmada.Network
             return this;
         }
 
+        public Packet WriteLengthPrefixed(string value)
+        {
+            byte[] chars = Encoding.ASCII.GetBytes(value);
+            Write((short) chars.Length);
+            writer.Write(chars);
+
+            return this;
+        }
+
         public Packet Write(byte[] value)
         {
             int len = Math.Min(value.Length, 1024);
@@ -160,6 +169,14 @@ namespace MCarmada.Network
         public string ReadString()
         {
             byte[] bytes = reader.ReadBytes(64);
+            string s = Encoding.ASCII.GetString(bytes);
+            return s.Trim();
+        }
+
+        public string ReadStringLengthPrefixed()
+        {
+            short len = ReadShort();
+            byte[] bytes = reader.ReadBytes(len);
             string s = Encoding.ASCII.GetString(bytes);
             return s.Trim();
         }

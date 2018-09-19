@@ -129,7 +129,13 @@ namespace MCarmada.Network
 
         private void HandlePacket(Packet packet)
         {
-            if (packet.Type == PacketType.Header.PlayerIdent)
+            if (packet.Type == PacketType.Header.ArmadaQuery)
+            {
+                Flush();
+                SendArmadaQueryResponse();
+                Flush();
+            }
+            else if (packet.Type == PacketType.Header.PlayerIdent)
             {
                 byte version = packet.ReadByte();
                 clientName = packet.ReadString();
@@ -343,6 +349,27 @@ namespace MCarmada.Network
             socket.Dispose();
             inBuffer.Dispose();
             outBuffer.Dispose();
+        }
+
+        private void SendArmadaQueryResponse()
+        {
+            Packet p = new Packet(PacketType.Header.ArmadaQuery);
+
+            p.WriteLengthPrefixed(server.ServerName);
+            p.WriteLengthPrefixed(server.MessageOfTheDay);
+            p.WriteLengthPrefixed(""); // description
+            p.Write((int) server.players.Length);
+            p.Write((int)server.GetOnlinePlayers());
+
+            for (int i = 0; i < server.players.Length; i++)
+            {
+                var player = server.players[i];
+                if (player == null) continue;
+
+                p.WriteLengthPrefixed(player.Name);
+            }
+
+            Send(p, false);
         }
     }
 }

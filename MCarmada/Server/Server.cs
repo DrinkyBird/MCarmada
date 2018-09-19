@@ -58,6 +58,7 @@ namespace MCarmada.Server
             new CpeExtension(CpeExtension.EnvWeatherType, 1), 
             new CpeExtension(CpeExtension.EnvColors, 1), 
             new CpeExtension(CpeExtension.EnvMapAspect, 1), 
+            new CpeExtension(CpeExtension.ArmadaQuery, 1), 
         };
 
         public Server(ushort port)

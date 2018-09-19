@@ -53,6 +53,9 @@ namespace MCarmada.Network
 
             // CPE EnvMapAspect
             CpeSetMapEnvProperty = 0x29,
+
+            // CPE ArmadaQuery
+            ArmadaQuery = 0xFA,
         }
 
         private static Dictionary<Header, int> PacketSizes = new Dictionary<Header, int>();
@@ -103,6 +106,9 @@ namespace MCarmada.Network
 
             // CPE EnvMapAspect
             PacketSizes[Header.CpeSetMapEnvProperty] = 5;
+
+            // ArmadaQuery
+            PacketSizes[Header.ArmadaQuery] = 0;
         }
 
         public static int GetPacketSize(Header packet)

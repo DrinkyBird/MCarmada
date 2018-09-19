@@ -32,6 +32,7 @@ namespace MCarmada.Cpe
         public static readonly string EntityProperty = "EntityProperty";
         public static readonly string ExtEntityPositions = "ExtEntityPositions";
         public static readonly string FastMap = "FastMap";
+        public static readonly string ArmadaQuery = "ArmadaQuery";
 
         public string Name;
         public int Version;
