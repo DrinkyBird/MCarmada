@@ -49,7 +49,7 @@ namespace MCarmada.Commands
             {
                 val = float.Parse(args[0]);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 player.SendMessage("&cValue is invalid format.");
                 return;

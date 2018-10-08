@@ -15,11 +15,7 @@ namespace MCarmada.Network
         private DeflateStream deflate;
 
         private int offset = 0;
-        private int dataOffset = 0;
         private byte[] data;
-
-        private bool finished = false;
-        private bool isBehind = false;
 
         private byte[] stub = new byte[32 * 1024];
 

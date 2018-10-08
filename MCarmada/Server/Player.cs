@@ -26,9 +26,7 @@ namespace MCarmada.Server
         public string Name { get; private set; }
 
         private ILevelCompressor levelCompressor;
-        private bool compressed = false;
         private bool levelSent = false;
-        private int dataOffset = 0;
 
         public int ID { get; private set; }
 
@@ -401,7 +399,8 @@ namespace MCarmada.Server
                 Y = Y,
                 Z = Z,
                 Yaw = Yaw,
-                Pitch = Pitch
+                Pitch = Pitch,
+				ClickDistance = ClickDistance
             };
             server.level.savedPlayers.Add(saved);
 
